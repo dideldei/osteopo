@@ -25,6 +25,9 @@ function recommend_therapy_level2(context):
     # 1) Determine therapy class by risk band
     if context.crossed_threshold == ">=10":
         rec.primary_class = "osteoanabolic"
+        # NOTE: Options should be derived from Substance Registry (therapy_class="osteoanabolic")
+        # Registry reference: DVO_Substance_Registry_v1.0.0.json
+        # Current active substances: romosozumab, teriparatide
         rec.primary_options = ["romosozumab","teriparatide"]
         rec.guideline_strength = {
             "DVO": {"grade":"A","text":"soll osteoanabol behandelt werden"},
@@ -42,6 +45,7 @@ function recommend_therapy_level2(context):
         if context.imminent_risk_flag == true:
             rec.secondary_considerations.append({
                 "class":"osteoanabolic",
+                # NOTE: Options from Substance Registry (therapy_class="osteoanabolic")
                 "options":["romosozumab","teriparatide"],
                 "strength":"0",
                 "why":"imminentes Frakturrisiko"
@@ -83,5 +87,9 @@ function recommend_therapy_level2(context):
 
 
 function rank_antiresorptives_minimal():
+    # NOTE: This list should be derived from Substance Registry (therapy_class="antiresorptive")
+    # Registry reference: DVO_Substance_Registry_v1.0.0.json
+    # Current active antiresorptive substances: alendronate, risedronate, zoledronate, denosumab, ibandronate, raloxifene, bazedoxifene
     # Minimal, order reflects practicality/adherence first
+    # In implementation: use getSubstancesByTherapyClass("antiresorptive") from substanceRegistry.ts
     return ["alendronate","risedronate","zoledronate","denosumab","ibandronate","raloxifene","bazedoxifene"]

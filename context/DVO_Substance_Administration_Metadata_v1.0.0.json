@@ -6,7 +6,7 @@
     "scope": "UI-only metadata for route/frequency/setting and approval context. Not used for ranking or eligibility. Approval notes may vary by product SmPC; verify locally if needed.",
     "fields": {
       "substance_id": "string (must match therapy engine IDs)",
-      "therapy_class": "antiresorptive | osteoanabolic",
+      "label_de": "string (from Substance Registry, for UI display)",
       "administration": {
         "route": "oral | iv | sc | mixed",
         "frequency_default": "daily | weekly | monthly | six_monthly | quarterly | yearly | mixed",
@@ -50,7 +50,7 @@
   "substances": [
     {
       "substance_id": "alendronate",
-      "therapy_class": "antiresorptive",
+      "label_de": "Alendronat",
       "administration": {
         "route": "oral",
         "frequency_default": "weekly",
@@ -70,7 +70,7 @@
     },
     {
       "substance_id": "risedronate",
-      "therapy_class": "antiresorptive",
+      "label_de": "Risedronat",
       "administration": {
         "route": "oral",
         "frequency_default": "weekly",
@@ -90,7 +90,7 @@
     },
     {
       "substance_id": "ibandronate",
-      "therapy_class": "antiresorptive",
+      "label_de": "Ibandronat",
       "administration": {
         "route": "mixed",
         "frequency_default": "mixed",
@@ -110,7 +110,7 @@
     },
     {
       "substance_id": "zoledronate",
-      "therapy_class": "antiresorptive",
+      "label_de": "Zoledronat",
       "administration": {
         "route": "iv",
         "frequency_default": "yearly",
@@ -130,7 +130,7 @@
     },
     {
       "substance_id": "denosumab",
-      "therapy_class": "antiresorptive",
+      "label_de": "Denosumab",
       "administration": {
         "route": "sc",
         "frequency_default": "six_monthly",
@@ -150,7 +150,7 @@
     },
     {
       "substance_id": "raloxifene",
-      "therapy_class": "antiresorptive",
+      "label_de": "Raloxifen",
       "administration": {
         "route": "oral",
         "frequency_default": "daily",
@@ -170,7 +170,7 @@
     },
     {
       "substance_id": "bazedoxifene",
-      "therapy_class": "antiresorptive",
+      "label_de": "Bazedoxifen",
       "administration": {
         "route": "oral",
         "frequency_default": "daily",
@@ -190,7 +190,7 @@
     },
     {
       "substance_id": "teriparatide",
-      "therapy_class": "osteoanabolic",
+      "label_de": "Teriparatid",
       "administration": {
         "route": "sc",
         "frequency_default": "daily",
@@ -210,7 +210,7 @@
     },
     {
       "substance_id": "romosozumab",
-      "therapy_class": "osteoanabolic",
+      "label_de": "Romosozumab",
       "administration": {
         "route": "sc",
         "frequency_default": "monthly",

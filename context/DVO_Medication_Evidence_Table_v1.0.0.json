@@ -31,7 +31,6 @@
     {
       "substance_id": "romosozumab",
       "label_de": "Romosozumab",
-      "therapy_class": "osteoanabolic",
       "evidence_level": "A",
       "fracture_efficacy": {
         "hip": true,
@@ -46,7 +45,6 @@
     {
       "substance_id": "teriparatide",
       "label_de": "Teriparatid",
-      "therapy_class": "osteoanabolic",
       "evidence_level": "A",
       "fracture_efficacy": {
         "hip": false,
@@ -61,7 +59,6 @@
     {
       "substance_id": "zoledronate",
       "label_de": "Zoledronat",
-      "therapy_class": "antiresorptive",
       "evidence_level": "A",
       "fracture_efficacy": {
         "hip": true,
@@ -76,7 +73,6 @@
     {
       "substance_id": "denosumab",
       "label_de": "Denosumab",
-      "therapy_class": "antiresorptive",
       "evidence_level": "A",
       "fracture_efficacy": {
         "hip": true,
@@ -91,7 +87,6 @@
     {
       "substance_id": "alendronate",
       "label_de": "Alendronat",
-      "therapy_class": "antiresorptive",
       "evidence_level": "A",
       "fracture_efficacy": {
         "hip": true,
@@ -106,7 +101,6 @@
     {
       "substance_id": "risedronate",
       "label_de": "Risedronat",
-      "therapy_class": "antiresorptive",
       "evidence_level": "A",
       "fracture_efficacy": {
         "hip": true,
@@ -121,7 +115,6 @@
     {
       "substance_id": "ibandronate",
       "label_de": "Ibandronat",
-      "therapy_class": "antiresorptive",
       "evidence_level": "B",
       "fracture_efficacy": {
         "hip": false,
@@ -135,7 +128,6 @@
     {
       "substance_id": "raloxifene",
       "label_de": "Raloxifen",
-      "therapy_class": "antiresorptive",
       "evidence_level": "B",
       "fracture_efficacy": {
         "hip": false,
@@ -149,7 +141,6 @@
     {
       "substance_id": "bazedoxifene",
       "label_de": "Bazedoxifen",
-      "therapy_class": "antiresorptive",
       "evidence_level": "B",
       "fracture_efficacy": {
         "hip": false,

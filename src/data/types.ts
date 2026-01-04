@@ -115,7 +115,7 @@ export interface FractureEfficacy {
 export interface EvidenceEntry {
   substance_id: string;
   label_de: string;
-  therapy_class: TherapyClass;
+  // therapy_class entfernt - kommt aus Registry
   evidence_level: EvidenceLevel;
   fracture_efficacy: FractureEfficacy;
   evidence_note_de: string;
@@ -165,7 +165,8 @@ export interface SubstanceAdministration {
 
 export interface SubstanceAdminMeta {
   substance_id: string;
-  therapy_class: "antiresorptive" | "osteoanabolic";
+  label_de?: string;  // From Registry, added for consistency
+  // therapy_class entfernt - kommt aus Registry
   administration: SubstanceAdministration;
   approval: {
     female: ApprovalInfo;
@@ -184,5 +185,27 @@ export interface SubstanceMetadataTable {
     enums?: Record<string, string[]>;
   };
   substances: SubstanceAdminMeta[];
+}
+
+// Substance Registry Types (Master Reference)
+export interface SubstanceRegistryEntry {
+  substance_id: string;
+  label_de: string;
+  therapy_class: TherapyClass;
+  active: boolean;
+}
+
+export interface SubstanceRegistryMeta {
+  name?: string;
+  version?: string;
+  created_date?: string;
+  scope?: string;
+  source_documents?: Array<{ title?: string; file?: string }>;
+  notes?: string[];
+}
+
+export interface SubstanceRegistry {
+  meta?: SubstanceRegistryMeta;
+  substances: SubstanceRegistryEntry[];
 }
 

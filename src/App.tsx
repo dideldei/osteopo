@@ -37,6 +37,10 @@ export default function App() {
   const [tscoreTotalHip, setTscoreTotalHip] = createSignal<number | null>(null);
   const [selectedRfIds, setSelectedRfIds] = createSignal<Set<string>>(new Set());
   const [rfSectionExpanded, setRfSectionExpanded] = createSignal(false);
+  const [expandedMegs, setExpandedMegs] = createSignal<Set<string>>(new Set());
+  const [expandedGroups, setExpandedGroups] = createSignal<Set<string>>(
+    new Set(["G1_STURZ", "G3_OTHER"]) // G2 initial nicht enthalten = kollabiert
+  );
 
   console.log('Loading bundle...');
   const bundle = loadBundle();
@@ -180,6 +184,34 @@ export default function App() {
     return { groups, megGroups };
   });
 
+  const toggleMegExpanded = (megId: string) => {
+    setExpandedMegs((current) => {
+      const next = new Set(current);
+      if (next.has(megId)) {
+        next.delete(megId);
+      } else {
+        next.add(megId);
+      }
+      return next;
+    });
+  };
+
+  const isMegExpanded = (megId: string) => expandedMegs().has(megId);
+
+  const toggleGroupExpanded = (groupId: string) => {
+    setExpandedGroups((current) => {
+      const next = new Set(current);
+      if (next.has(groupId)) {
+        next.delete(groupId);
+      } else {
+        next.add(groupId);
+      }
+      return next;
+    });
+  };
+
+  const isGroupExpanded = (groupId: string) => expandedGroups().has(groupId);
+
   const toggleRf = (rfId: string) => {
     const current = selectedRfIds();
     const toggledRf = displayRfs().find((rf) => rf.rf_id === rfId);
@@ -192,6 +224,36 @@ export default function App() {
     // Enforce MEG rules before updating state
     const updated = enforceMegRules(current, toggledRf, megIndex(), displayRfs());
     setSelectedRfIds(updated);
+
+    // Auto-expand: If selecting an RF in a collapsed MEG, expand it
+    const megId = megIndex().rfToMeg.get(rfId);
+    if (megId && updated.has(rfId)) {
+      // RF is now selected, expand MEG if not already expanded
+      setExpandedMegs((current) => {
+        if (!current.has(megId)) {
+          const next = new Set(current);
+          next.add(megId);
+          return next;
+        }
+        return current;
+      });
+    }
+
+    // Auto-collapse: Check if MEG has no selected RFs anymore
+    if (megId) {
+      const megRfs = megIndex().megToRfs.get(megId);
+      if (megRfs) {
+        const hasSelectedRf = megRfs.rfIds.some((id) => updated.has(id));
+        if (!hasSelectedRf) {
+          // No RFs selected in MEG anymore, collapse it
+          setExpandedMegs((current) => {
+            const next = new Set(current);
+            next.delete(megId);
+            return next;
+          });
+        }
+      }
+    }
   };
 
   const results = createMemo(() => {
@@ -428,11 +490,22 @@ export default function App() {
           {rfSectionExpanded() && (
             <div class="rf-content">
               <div class="rf-group">
-                <h3>G1: Sturzrisiko</h3>
-                <p class="rf-group-hint">
-                  Aus dieser Gruppe wird automatisch nur der stärkste Risikofaktor berücksichtigt.
-                </p>
-                {(() => {
+                <button
+                  class="rf-group-toggle"
+                  onClick={() => toggleGroupExpanded("G1_STURZ")}
+                  type="button"
+                >
+                  <span class="rf-group-toggle-icon">
+                    {isGroupExpanded("G1_STURZ") ? '▼' : '▶'}
+                  </span>
+                  <h3 class="rf-group-title">G1: Sturzrisiko</h3>
+                </button>
+                {isGroupExpanded("G1_STURZ") && (
+                  <>
+                    <p class="rf-group-hint">
+                      Aus dieser Gruppe wird automatisch nur der stärkste Risikofaktor berücksichtigt.
+                    </p>
+                    {(() => {
                   const { groups, megGroups } = groupedRfs();
                   const g1Rfs = groups.G1_STURZ;
                   const g1MegGroups = megGroups.G1_STURZ;
@@ -449,23 +522,43 @@ export default function App() {
                   return (
                     <>
                       {/* Render MEG groups */}
-                      {Object.entries(g1MegGroups).map(([megId, megRfs]) => (
-                        <div class="rf-meg-subgroup">
-                          <p class="rf-meg-hint">
-                            {getMegLabel(megId)}: Aus dieser Gruppe kann nur eine Option gleichzeitig gewählt werden.
-                          </p>
-                          {megRfs.map((rf) => (
-                            <label class="rf-item">
-                              <input
-                                type="checkbox"
-                                checked={selectedRfIds().has(rf.rf_id)}
-                                onChange={() => toggleRf(rf.rf_id)}
-                              />
-                              <span>{formatRfLabel(rf)}</span>
-                            </label>
-                          ))}
-                        </div>
-                      ))}
+                      {Object.entries(g1MegGroups).map(([megId, megRfs]) => {
+                        const expanded = isMegExpanded(megId);
+                        const hasSelectedRf = megRfs.some((rf) => selectedRfIds().has(rf.rf_id));
+                        
+                        return (
+                          <div class="rf-meg-subgroup">
+                            <button
+                              class="rf-meg-toggle"
+                              onClick={() => toggleMegExpanded(megId)}
+                              type="button"
+                            >
+                              <span class="rf-meg-toggle-icon">{expanded ? '▼' : '▶'}</span>
+                              <span class="rf-meg-toggle-label">{getMegLabel(megId)}</span>
+                              {hasSelectedRf && (
+                                <span class="rf-meg-selected-badge">(ausgewählt)</span>
+                              )}
+                            </button>
+                            {expanded && (
+                              <div class="rf-meg-content">
+                                <p class="rf-meg-hint">
+                                  Aus dieser Gruppe kann nur eine Option gleichzeitig gewählt werden.
+                                </p>
+                                {megRfs.map((rf) => (
+                                  <label class="rf-item">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedRfIds().has(rf.rf_id)}
+                                      onChange={() => toggleRf(rf.rf_id)}
+                                    />
+                                    <span>{formatRfLabel(rf)}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                       {/* Render non-MEG RFs */}
                       {nonMegRfs.map((rf) => (
                         <label class="rf-item">
@@ -479,15 +572,28 @@ export default function App() {
                       ))}
                     </>
                   );
-                })()}
+                    })()}
+                  </>
+                )}
               </div>
 
               <div class="rf-group">
-                <h3>G2: Rheumatoide Arthritis / Glukokortikoide</h3>
-                <p class="rf-group-hint">
-                  Aus dieser Gruppe wird automatisch nur der stärkste Risikofaktor berücksichtigt.
-                </p>
-                {(() => {
+                <button
+                  class="rf-group-toggle"
+                  onClick={() => toggleGroupExpanded("G2_RA_GC")}
+                  type="button"
+                >
+                  <span class="rf-group-toggle-icon">
+                    {isGroupExpanded("G2_RA_GC") ? '▼' : '▶'}
+                  </span>
+                  <h3 class="rf-group-title">G2: Rheumatoide Arthritis / Glukokortikoide</h3>
+                </button>
+                {isGroupExpanded("G2_RA_GC") && (
+                  <>
+                    <p class="rf-group-hint">
+                      Aus dieser Gruppe wird automatisch nur der stärkste Risikofaktor berücksichtigt.
+                    </p>
+                    {(() => {
                   const { groups, megGroups } = groupedRfs();
                   const g2Rfs = groups.G2_RA_GC;
                   const g2MegGroups = megGroups.G2_RA_GC;
@@ -504,23 +610,43 @@ export default function App() {
                   return (
                     <>
                       {/* Render MEG groups */}
-                      {Object.entries(g2MegGroups).map(([megId, megRfs]) => (
-                        <div class="rf-meg-subgroup">
-                          <p class="rf-meg-hint">
-                            {getMegLabel(megId)}: Aus dieser Gruppe kann nur eine Option gleichzeitig gewählt werden.
-                          </p>
-                          {megRfs.map((rf) => (
-                            <label class="rf-item">
-                              <input
-                                type="checkbox"
-                                checked={selectedRfIds().has(rf.rf_id)}
-                                onChange={() => toggleRf(rf.rf_id)}
-                              />
-                              <span>{formatRfLabel(rf)}</span>
-                            </label>
-                          ))}
-                        </div>
-                      ))}
+                      {Object.entries(g2MegGroups).map(([megId, megRfs]) => {
+                        const expanded = isMegExpanded(megId);
+                        const hasSelectedRf = megRfs.some((rf) => selectedRfIds().has(rf.rf_id));
+                        
+                        return (
+                          <div class="rf-meg-subgroup">
+                            <button
+                              class="rf-meg-toggle"
+                              onClick={() => toggleMegExpanded(megId)}
+                              type="button"
+                            >
+                              <span class="rf-meg-toggle-icon">{expanded ? '▼' : '▶'}</span>
+                              <span class="rf-meg-toggle-label">{getMegLabel(megId)}</span>
+                              {hasSelectedRf && (
+                                <span class="rf-meg-selected-badge">(ausgewählt)</span>
+                              )}
+                            </button>
+                            {expanded && (
+                              <div class="rf-meg-content">
+                                <p class="rf-meg-hint">
+                                  Aus dieser Gruppe kann nur eine Option gleichzeitig gewählt werden.
+                                </p>
+                                {megRfs.map((rf) => (
+                                  <label class="rf-item">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedRfIds().has(rf.rf_id)}
+                                      onChange={() => toggleRf(rf.rf_id)}
+                                    />
+                                    <span>{formatRfLabel(rf)}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                       {/* Render non-MEG RFs */}
                       {nonMegRfs.map((rf) => (
                         <label class="rf-item">
@@ -534,15 +660,28 @@ export default function App() {
                       ))}
                     </>
                   );
-                })()}
+                    })()}
+                  </>
+                )}
               </div>
 
               <div class="rf-group">
-                <h3>G3: Sonstige Risikofaktoren</h3>
-                <p class="rf-group-hint">
-                  Bis zu zwei Risikofaktoren können berücksichtigt werden.
-                </p>
-                {(() => {
+                <button
+                  class="rf-group-toggle"
+                  onClick={() => toggleGroupExpanded("G3_OTHER")}
+                  type="button"
+                >
+                  <span class="rf-group-toggle-icon">
+                    {isGroupExpanded("G3_OTHER") ? '▼' : '▶'}
+                  </span>
+                  <h3 class="rf-group-title">G3: Sonstige Risikofaktoren</h3>
+                </button>
+                {isGroupExpanded("G3_OTHER") && (
+                  <>
+                    <p class="rf-group-hint">
+                      Bis zu zwei Risikofaktoren können berücksichtigt werden.
+                    </p>
+                    {(() => {
                   const { groups, megGroups } = groupedRfs();
                   const g3Rfs = groups.G3_OTHER;
                   const g3MegGroups = megGroups.G3_OTHER;
@@ -559,23 +698,43 @@ export default function App() {
                   return (
                     <>
                       {/* Render MEG groups */}
-                      {Object.entries(g3MegGroups).map(([megId, megRfs]) => (
-                        <div class="rf-meg-subgroup">
-                          <p class="rf-meg-hint">
-                            {getMegLabel(megId)}: Aus dieser Gruppe kann nur eine Option gleichzeitig gewählt werden.
-                          </p>
-                          {megRfs.map((rf) => (
-                            <label class="rf-item">
-                              <input
-                                type="checkbox"
-                                checked={selectedRfIds().has(rf.rf_id)}
-                                onChange={() => toggleRf(rf.rf_id)}
-                              />
-                              <span>{formatRfLabel(rf)}</span>
-                            </label>
-                          ))}
-                        </div>
-                      ))}
+                      {Object.entries(g3MegGroups).map(([megId, megRfs]) => {
+                        const expanded = isMegExpanded(megId);
+                        const hasSelectedRf = megRfs.some((rf) => selectedRfIds().has(rf.rf_id));
+                        
+                        return (
+                          <div class="rf-meg-subgroup">
+                            <button
+                              class="rf-meg-toggle"
+                              onClick={() => toggleMegExpanded(megId)}
+                              type="button"
+                            >
+                              <span class="rf-meg-toggle-icon">{expanded ? '▼' : '▶'}</span>
+                              <span class="rf-meg-toggle-label">{getMegLabel(megId)}</span>
+                              {hasSelectedRf && (
+                                <span class="rf-meg-selected-badge">(ausgewählt)</span>
+                              )}
+                            </button>
+                            {expanded && (
+                              <div class="rf-meg-content">
+                                <p class="rf-meg-hint">
+                                  Aus dieser Gruppe kann nur eine Option gleichzeitig gewählt werden.
+                                </p>
+                                {megRfs.map((rf) => (
+                                  <label class="rf-item">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedRfIds().has(rf.rf_id)}
+                                      onChange={() => toggleRf(rf.rf_id)}
+                                    />
+                                    <span>{formatRfLabel(rf)}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                       {/* Render non-MEG RFs */}
                       {nonMegRfs.map((rf) => (
                         <label class="rf-item">
@@ -589,7 +748,9 @@ export default function App() {
                       ))}
                     </>
                   );
-                })()}
+                    })()}
+                  </>
+                )}
               </div>
             </div>
           )}

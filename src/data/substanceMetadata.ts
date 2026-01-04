@@ -1,5 +1,6 @@
 import type { SubstanceMetadataTable, SubstanceAdminMeta } from './types';
 import substanceMetadataData from '../../context/DVO_Substance_Administration_Metadata_v1.0.0.json';
+import { isValidSubstance } from './substanceRegistry';
 
 const metadataTable = substanceMetadataData as SubstanceMetadataTable;
 
@@ -128,5 +129,25 @@ export function getApprovalHint(
   }
   
   return null;
+}
+
+/**
+ * Validate metadata table entries against substance registry
+ * Checks that all substances exist in registry
+ * 
+ * @param enableWarnings - If true, log warnings for mismatches (default: false)
+ * @returns Array of validation errors (empty if all valid)
+ */
+export function validateMetadataAgainstRegistry(enableWarnings: boolean = false): string[] {
+  const errors: string[] = [];
+  
+  metadataTable.substances.forEach((entry) => {
+    // Check if substance exists in registry
+    if (!isValidSubstance(entry.substance_id)) {
+      errors.push(`Administration Metadata: substance_id "${entry.substance_id}" not found in Registry`);
+    }
+  });
+  
+  return errors;
 }
 

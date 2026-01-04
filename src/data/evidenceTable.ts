@@ -1,5 +1,6 @@
 import type { EvidenceTable, EvidenceEntry } from './types';
 import evidenceTableData from '../../context/DVO_Medication_Evidence_Table_v1.0.0.json';
+import { isValidSubstance } from './substanceRegistry';
 
 const evidenceTable = evidenceTableData as EvidenceTable;
 
@@ -66,5 +67,25 @@ export function validateEvidenceEntries(substanceIds: string[]): void {
       `Missing evidence entries for substances: ${missing.join(', ')}`
     );
   }
+}
+
+/**
+ * Validate evidence table entries against substance registry
+ * Checks that all substances exist in registry
+ * 
+ * @param enableWarnings - If true, log warnings for mismatches (default: false)
+ * @returns Array of validation errors (empty if all valid)
+ */
+export function validateAgainstRegistry(enableWarnings: boolean = false): string[] {
+  const errors: string[] = [];
+  
+  evidenceTable.substances.forEach((entry) => {
+    // Check if substance exists in registry
+    if (!isValidSubstance(entry.substance_id)) {
+      errors.push(`Evidence Table: substance_id "${entry.substance_id}" not found in Registry`);
+    }
+  });
+  
+  return errors;
 }
 

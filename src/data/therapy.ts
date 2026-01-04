@@ -1,5 +1,5 @@
 import type { RiskBand, TherapyPlan, TherapyStrategy, TherapyClass } from './types';
-import { loadEvidenceTable } from './evidenceTable';
+import { getSubstancesByTherapyClass } from './substanceRegistry';
 
 /**
  * Derive therapy strategy plan from risk band and trigger presence
@@ -80,7 +80,7 @@ export function deriveTherapyPlan(
 
 /**
  * Get candidate substance IDs for a therapy strategy
- * Based on pseudocode: maps strategy to therapy class, then filters evidence table
+ * Based on pseudocode: maps strategy to therapy class, then gets substances from Registry
  * 
  * @param strategy - Therapy strategy
  * @returns Array of substance IDs for this strategy
@@ -90,8 +90,6 @@ export function getCandidateSubstances(strategy: TherapyStrategy): string[] {
     return [];
   }
 
-  const evidenceTable = loadEvidenceTable();
-  
   // Map strategy to therapy class
   let therapyClass: TherapyClass;
   if (strategy === "osteoanabolic_start") {
@@ -101,10 +99,8 @@ export function getCandidateSubstances(strategy: TherapyStrategy): string[] {
     therapyClass = "antiresorptive";
   }
 
-  // Filter substances by therapy class
-  const candidates = evidenceTable.substances
-    .filter((sub) => sub.therapy_class === therapyClass)
-    .map((sub) => sub.substance_id);
+  // Get substances from Registry
+  const candidates = getSubstancesByTherapyClass(therapyClass, true);
 
   // Special case: >=10% should only show romosozumab and teriparatide (per pseudocode)
   if (strategy === "osteoanabolic_start") {

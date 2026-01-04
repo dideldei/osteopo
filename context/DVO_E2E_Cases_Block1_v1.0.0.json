@@ -13,7 +13,13 @@
       "DVO_RF_Katalog_Rohdaten_v0.5.json",
       "DVO_lookup_pseudocode_v1.txt",
       "DVO_therapy_engine_pseudocode_v1.txt",
-      "DVO_contraindication_pseudocode_v1.txt"
+      "DVO_contraindication_pseudocode_v1.txt",
+      "DVO_Substance_Registry_v1.0.0.json"
+    ],
+    "notes": [
+      "Substance options in expected outputs should match Substance Registry (DVO_Substance_Registry_v1.0.0.json).",
+      "For osteoanabolic: use getSubstancesByTherapyClass('osteoanabolic') from substanceRegistry.ts",
+      "For antiresorptive: use getSubstancesByTherapyClass('antiresorptive') from substanceRegistry.ts"
     ]
   },
   "cases": [

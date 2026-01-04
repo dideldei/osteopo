@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "name": "DVO Substance Registry (Master Reference)",
+    "version": "1.0.0",
+    "created_date": "2026-01-04",
+    "scope": "Single source of truth for all substance identifiers, labels, and base classifications. Used for validation and consistency checks across Evidence Table, Administration Metadata, and code.",
+    "source_documents": [
+      {
+        "title": "DVO Therapy Recommendation Engine — Pseudocode (v1)",
+        "file": "DVO_therapy_engine_pseudocode_v1.txt"
+      },
+      {
+        "title": "DVO Medication Evidence Table v1.0.0",
+        "file": "DVO_Medication_Evidence_Table_v1.0.0.json"
+      },
+      {
+        "title": "DVO Substance Administration Metadata v1.0.0",
+        "file": "DVO_Substance_Administration_Metadata_v1.0.0.json"
+      }
+    ],
+    "notes": [
+      "This registry serves as the authoritative source for substance_id, label_de, and therapy_class.",
+      "All other data files (Evidence Table, Administration Metadata) should reference substances by substance_id.",
+      "When adding new substances, update this registry first, then update dependent files.",
+      "The 'active' flag allows deprecating substances without removing them from the registry."
+    ]
+  },
+  "substances": [
+    {
+      "substance_id": "alendronate",
+      "label_de": "Alendronat",
+      "therapy_class": "antiresorptive",
+      "active": true
+    },
+    {
+      "substance_id": "risedronate",
+      "label_de": "Risedronat",
+      "therapy_class": "antiresorptive",
+      "active": true
+    },
+    {
+      "substance_id": "zoledronate",
+      "label_de": "Zoledronat",
+      "therapy_class": "antiresorptive",
+      "active": true
+    },
+    {
+      "substance_id": "denosumab",
+      "label_de": "Denosumab",
+      "therapy_class": "antiresorptive",
+      "active": true
+    },
+    {
+      "substance_id": "ibandronate",
+      "label_de": "Ibandronat",
+      "therapy_class": "antiresorptive",
+      "active": true
+    },
+    {
+      "substance_id": "raloxifene",
+      "label_de": "Raloxifen",
+      "therapy_class": "antiresorptive",
+      "active": true
+    },
+    {
+      "substance_id": "bazedoxifene",
+      "label_de": "Bazedoxifen",
+      "therapy_class": "antiresorptive",
+      "active": true
+    },
+    {
+      "substance_id": "teriparatide",
+      "label_de": "Teriparatid",
+      "therapy_class": "osteoanabolic",
+      "active": true
+    },
+    {
+      "substance_id": "romosozumab",
+      "label_de": "Romosozumab",
+      "therapy_class": "osteoanabolic",
+      "active": true
+    }
+  ]
+}
+

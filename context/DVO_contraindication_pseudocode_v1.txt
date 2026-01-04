@@ -20,6 +20,9 @@ function filter_by_minimal_contraindications(options, context):
     excluded = {}
 
     for option in options:
+        # NOTE: Oral bisphosphonates should be derived from Substance Registry
+        # Registry reference: DVO_Substance_Registry_v1.0.0.json
+        # Current oral antiresorptives: alendronate, risedronate (route="oral")
         if option in {"alendronate","risedronate"}:
             if context.severe_esophageal_disease == true or context.unable_to_remain_upright == true:
                 excluded[option] = "Schwere Ösophaguserkrankung oder fehlende Aufrichtigkeit (oral kontraindiziert)"
