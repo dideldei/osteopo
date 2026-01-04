@@ -243,7 +243,7 @@ export default function App() {
     if (megId) {
       const megRfs = megIndex().megToRfs.get(megId);
       if (megRfs) {
-        const hasSelectedRf = megRfs.rfIds.some((id) => updated.has(id));
+        const hasSelectedRf = megRfs.rfIds.some((id: string) => updated.has(id));
         if (!hasSelectedRf) {
           // No RFs selected in MEG anymore, collapse it
           setExpandedMegs((current) => {
