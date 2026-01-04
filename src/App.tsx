@@ -35,6 +35,7 @@ export default function App() {
   const [sex, setSex] = createSignal<Sex>(null);
   const [age, setAge] = createSignal<number | null>(null);
   const [tscoreTotalHip, setTscoreTotalHip] = createSignal<number | null>(null);
+  const [tscoreInputValue, setTscoreInputValue] = createSignal<string>('');
   const [selectedRfIds, setSelectedRfIds] = createSignal<Set<string>>(new Set());
   const [rfSectionExpanded, setRfSectionExpanded] = createSignal(false);
   const [expandedMegs, setExpandedMegs] = createSignal<Set<string>>(new Set());
@@ -454,14 +455,53 @@ export default function App() {
         <div class="field">
           <label for="tscore">BMD (Total Hip T-Score, optional)</label>
           <input
-            type="number"
+            type="text"
+            inputMode="decimal"
             id="tscore"
-            step="0.1"
-            value={tscoreTotalHip() ?? ''}
+            value={tscoreInputValue()}
             placeholder="z.B. -2.5"
             onInput={(e) => {
+              let value = e.currentTarget.value;
+              // Normalize comma to dot for parsing (mobile keyboards often use comma)
+              const normalizedValue = value.replace(',', '.');
+              
+              // Update the display value (preserve intermediate states like "1." or ".5")
+              setTscoreInputValue(value);
+              
+              // Try to parse - only update numeric value if valid
+              if (value === '' || value === '-' || value === '.' || value === ',' || value === '-.' || value === '-,' || value === '.-' || value === ',-') {
+                // Intermediate states - keep input but clear numeric value
+                setTscoreTotalHip(null);
+              } else {
+                const parsed = parseFloat(normalizedValue);
+                if (!isNaN(parsed)) {
+                  setTscoreTotalHip(parsed);
+                } else {
+                  // Invalid input - keep display but clear numeric
+                  setTscoreTotalHip(null);
+                }
+              }
+            }}
+            onBlur={(e) => {
+              // On blur, normalize the display value (convert comma to dot, remove trailing dot if no decimals)
               const value = e.currentTarget.value;
-              setTscoreTotalHip(value === '' ? null : parseFloat(value));
+              if (value === '' || value === '-' || value === '.' || value === ',' || value === '-.' || value === '-,' || value === '.-' || value === ',-') {
+                setTscoreInputValue('');
+                setTscoreTotalHip(null);
+              } else {
+                const normalized = value.replace(',', '.');
+                const parsed = parseFloat(normalized);
+                if (!isNaN(parsed)) {
+                  // Format nicely: remove trailing dot if it's a whole number
+                  const formatted = parsed % 1 === 0 ? parsed.toString() : normalized;
+                  setTscoreInputValue(formatted);
+                  setTscoreTotalHip(parsed);
+                } else {
+                  // Invalid - clear on blur
+                  setTscoreInputValue('');
+                  setTscoreTotalHip(null);
+                }
+              }
             }}
           />
         </div>
