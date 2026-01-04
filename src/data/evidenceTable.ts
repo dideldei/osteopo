@@ -1,6 +1,7 @@
 import type { EvidenceTable, EvidenceEntry } from './types';
 import evidenceTableData from '../../context/DVO_Medication_Evidence_Table_v1.0.0.json';
 import { isValidSubstance } from './substanceRegistry';
+import { logger } from '../utils/logger';
 
 const evidenceTable = evidenceTableData as EvidenceTable;
 
@@ -39,7 +40,7 @@ export function getEvidenceFor(substanceId: string): EvidenceEntry | null {
   const entry = map.get(substanceId);
   
   if (!entry) {
-    console.warn(`No evidence entry found for substance_id: ${substanceId}`);
+    logger.warn(`No evidence entry found for substance_id: ${substanceId}`);
     return null;
   }
   
@@ -63,7 +64,7 @@ export function validateEvidenceEntries(substanceIds: string[]): void {
   });
   
   if (missing.length > 0) {
-    console.warn(
+    logger.warn(
       `Missing evidence entries for substances: ${missing.join(', ')}`
     );
   }

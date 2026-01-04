@@ -19,6 +19,9 @@ import { deriveTherapyPlan, getCandidateSubstances } from './data/therapy';
 import { rankSubstancesByEvidence } from './data/substanceRanking';
 import { getMetadataFor, getRegimenText, getApprovalHint } from './data/substanceMetadata';
 import type { ThresholdTable, RiskFactor, RiskBand } from './data/types';
+import { RiskFactorGroup } from './components/RiskFactorGroup';
+import { InputSection } from './components/InputSection';
+import { logger } from './utils/logger';
 
 type Sex = 'female' | 'male' | null;
 
@@ -30,7 +33,7 @@ function getBadgeClass(band: string): string {
 }
 
 export default function App() {
-  console.log('App component initializing');
+  logger.log('App component initializing');
   
   const [sex, setSex] = createSignal<Sex>(null);
   const [age, setAge] = createSignal<number | null>(null);
@@ -43,26 +46,38 @@ export default function App() {
     new Set(["G1_STURZ", "G3_OTHER"]) // G2 initial nicht enthalten = kollabiert
   );
 
-  console.log('Loading bundle...');
+  logger.log('Loading bundle...');
   const bundle = loadBundle();
   
+  // Central RF catalog cache - loaded once and reused
+  const rfCatalog = createMemo(() => {
+    try {
+      return loadRfCatalog();
+    } catch (error) {
+      logger.error('Failed to load RF catalog:', error);
+      return null;
+    }
+  });
+
   // Load RF catalog with error handling - use memo to make it lazy
   const availableRfs = createMemo(() => {
+    const catalog = rfCatalog();
+    if (!catalog) return [];
     try {
-      const rfCatalog = loadRfCatalog();
-      return getRiskFactorsForCalculation(rfCatalog);
+      return getRiskFactorsForCalculation(catalog);
     } catch (error) {
-      console.error('Failed to load RF catalog:', error);
+      logger.error('Failed to get calculation RFs:', error);
       return [];
     }
   });
 
   // Display RFs: includes calculation RFs plus trigger-only RFs
   const displayRfs = createMemo(() => {
+    const catalog = rfCatalog();
+    if (!catalog) return [];
     try {
-      const rfCatalog = loadRfCatalog();
-      const calcRfs = getRiskFactorsForCalculation(rfCatalog);
-      const allRfs = getAllRiskFactors(rfCatalog);
+      const calcRfs = getRiskFactorsForCalculation(catalog);
+      const allRfs = getAllRiskFactors(catalog);
       
       // Add trigger-only RFs (not in calculation but have trigger flags)
       const triggerOnlyRfs = allRfs.filter(
@@ -73,27 +88,31 @@ export default function App() {
       
       return [...calcRfs, ...triggerOnlyRfs];
     } catch (error) {
-      console.error('Failed to load display RFs:', error);
+      logger.error('Failed to get display RFs:', error);
       return [];
     }
   });
 
   // Build MEG index from catalog
   const megIndex = createMemo(() => {
+    const catalog = rfCatalog();
+    if (!catalog) {
+      return { megToRfs: new Map(), rfToMeg: new Map() };
+    }
     try {
-      const rfCatalog = loadRfCatalog();
-      return buildMegIndex(rfCatalog);
+      return buildMegIndex(catalog);
     } catch (error) {
-      console.error('Failed to build MEG index:', error);
+      logger.error('Failed to build MEG index:', error);
       return { megToRfs: new Map(), rfToMeg: new Map() };
     }
   });
 
   // Get MEG label from catalog
   const getMegLabel = (megId: string): string => {
+    const catalog = rfCatalog();
+    if (!catalog) return megId;
     try {
-      const rfCatalog = loadRfCatalog();
-      const meg = rfCatalog.meta?.mutual_exclusion_groups?.find((g) => g.id === megId);
+      const meg = catalog.meta?.mutual_exclusion_groups?.find((g) => g.id === megId);
       return meg?.label_de || megId;
     } catch {
       return megId;
@@ -112,7 +131,7 @@ export default function App() {
     return label;
   };
   
-  console.log('App component initialized');
+  logger.log('App component initialized');
 
   const computedAgeBin = createMemo(() => {
     const ageValue = age();
@@ -218,7 +237,7 @@ export default function App() {
     const toggledRf = displayRfs().find((rf) => rf.rf_id === rfId);
     
     if (!toggledRf) {
-      console.warn(`RF not found: ${rfId}`);
+      logger.warn(`RF not found: ${rfId}`);
       return;
     }
 
@@ -333,7 +352,8 @@ export default function App() {
     );
 
     // Get all RFs from catalog (not just calculation RFs) for trigger detection
-    const allRfs = getAllRiskFactors(loadRfCatalog());
+    const catalog = rfCatalog();
+    const allRfs = catalog ? getAllRiskFactors(catalog) : [];
     const selectedRfs = allRfs.filter((rf) => selectedRfIds().has(rf.rf_id));
 
     // Compute triggers
@@ -401,470 +421,93 @@ export default function App() {
     return ageValue !== null && ageValue < 50;
   });
 
-  console.log('App render called');
+  logger.log('App render called');
   
   return (
     <div class="app">
       <h1>DVO Osteoporose – MVP Threshold Classifier</h1>
 
+      <InputSection
+        sex={sex}
+        setSex={setSex}
+        age={age}
+        setAge={setAge}
+        tscoreInputValue={tscoreInputValue}
+        setTscoreInputValue={setTscoreInputValue}
+        setTscoreTotalHip={setTscoreTotalHip}
+        isOutOfScope={isOutOfScope}
+        isTscoreOutOfScope={isTscoreOutOfScope}
+      />
+
       <div class="card">
-        <h2>Eingaben</h2>
-        <div class="field">
-          <label for="sex">Geschlecht</label>
-          <div class="row">
-            <label class="radio-label">
-              <input
-                type="radio"
-                id="sex-female"
-                name="sex"
-                value="female"
-                checked={sex() === 'female'}
-                onChange={(e) => setSex(e.currentTarget.value as 'female')}
-              />
-              <span>Weiblich</span>
-            </label>
-            <label class="radio-label">
-              <input
-                type="radio"
-                id="sex-male"
-                name="sex"
-                value="male"
-                checked={sex() === 'male'}
-                onChange={(e) => setSex(e.currentTarget.value as 'male')}
-              />
-              <span>Männlich</span>
-            </label>
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="age">Alter (Jahre)</label>
-          <input
-            type="number"
-            id="age"
-            min="0"
-            max="120"
-            value={ageValue() ?? ''}
-            onInput={(e) => {
-              const value = e.currentTarget.value;
-              setAge(value === '' ? null : parseInt(value, 10));
-            }}
-          />
-        </div>
-
-        <div class="field">
-          <label for="tscore">BMD (Total Hip T-Score, optional)</label>
-          <input
-            type="text"
-            id="tscore"
-            class="bmd-input"
-            value={tscoreInputValue()}
-            placeholder="z.B. -2.5"
-            pattern="^-?\d*[.,]?\d*$"
-            onInput={(e) => {
-              let value = e.currentTarget.value;
-              // Normalize comma to dot for parsing (mobile keyboards often use comma)
-              const normalizedValue = value.replace(',', '.');
-              
-              // Update the display value (preserve intermediate states like "1." or ".5")
-              setTscoreInputValue(value);
-              
-              // Try to parse - only update numeric value if valid
-              if (value === '' || value === '-' || value === '.' || value === ',' || value === '-.' || value === '-,' || value === '.-' || value === ',-') {
-                // Intermediate states - keep input but clear numeric value
-                setTscoreTotalHip(null);
-              } else {
-                const parsed = parseFloat(normalizedValue);
-                if (!isNaN(parsed)) {
-                  setTscoreTotalHip(parsed);
-                } else {
-                  // Invalid input - keep display but clear numeric
-                  setTscoreTotalHip(null);
-                }
-              }
-            }}
-            onBlur={(e) => {
-              // On blur, normalize the display value (convert comma to dot, remove trailing dot if no decimals)
-              const value = e.currentTarget.value;
-              if (value === '' || value === '-' || value === '.' || value === ',' || value === '-.' || value === '-,' || value === '.-' || value === ',-') {
-                setTscoreInputValue('');
-                setTscoreTotalHip(null);
-              } else {
-                const normalized = value.replace(',', '.');
-                const parsed = parseFloat(normalized);
-                if (!isNaN(parsed)) {
-                  // Format nicely: remove trailing dot if it's a whole number
-                  const formatted = parsed % 1 === 0 ? parsed.toString() : normalized;
-                  setTscoreInputValue(formatted);
-                  setTscoreTotalHip(parsed);
-                } else {
-                  // Invalid - clear on blur
-                  setTscoreInputValue('');
-                  setTscoreTotalHip(null);
-                }
-              }
-            }}
-          />
-        </div>
-
-        {isOutOfScope() && (
-          <div class="notice">
-            Hinweis: Alter unter 50 Jahren liegt außerhalb des Gültigkeitsbereichs.
-          </div>
-        )}
-
-        {isTscoreOutOfScope() && (
-          <div class="notice">
-            T-Score &gt; 0,0: keine Osteoporose (außerhalb App-Scope)
-          </div>
-        )}
-
         <div class="rf-section">
           <button
             type="button"
             class="rf-toggle"
             onClick={() => setRfSectionExpanded(!rfSectionExpanded())}
+            aria-expanded={rfSectionExpanded()}
+            aria-label="Risikofaktoren ein- oder ausblenden"
           >
             {rfSectionExpanded() ? '▼' : '▶'} Risikofaktoren (optional)
           </button>
           
           {rfSectionExpanded() && (
             <div class="rf-content">
-              <div class="rf-group">
-                <button
-                  class="rf-group-toggle"
-                  onClick={() => toggleGroupExpanded("G1_STURZ")}
-                  type="button"
-                >
-                  <span class="rf-group-toggle-icon">
-                    {isGroupExpanded("G1_STURZ") ? '▼' : '▶'}
-                  </span>
-                  <h3 class="rf-group-title">G1: Sturzrisiko</h3>
-                </button>
-                {isGroupExpanded("G1_STURZ") && (
+              {(() => {
+                const { groups, megGroups } = groupedRfs();
+                return (
                   <>
-                    <p class="rf-group-hint">
-                      Aus dieser Gruppe wird automatisch nur der stärkste Risikofaktor berücksichtigt.
-                    </p>
-                    {(() => {
-                  const { groups, megGroups } = groupedRfs();
-                  const g1Rfs = groups.G1_STURZ;
-                  const g1MegGroups = megGroups.G1_STURZ;
-                  
-                  // Get RFs that are in MEGs
-                  const rfsInMegs = new Set<string>();
-                  Object.values(g1MegGroups).forEach((megRfs) => {
-                    megRfs.forEach((rf) => rfsInMegs.add(rf.rf_id));
-                  });
-                  
-                  // Separate MEG and non-MEG RFs
-                  const nonMegRfs = g1Rfs.filter((rf) => !rfsInMegs.has(rf.rf_id));
-                  
-                  return (
-                    <>
-                      {/* Render MEG groups */}
-                      {Object.entries(g1MegGroups).map(([megId, megRfs]) => {
-                        const expanded = isMegExpanded(megId);
-                        const hasSelectedRf = megRfs.some((rf) => selectedRfIds().has(rf.rf_id));
-                        
-                        return (
-                          <div class="rf-meg-subgroup">
-                            <button
-                              class="rf-meg-toggle"
-                              onClick={() => toggleMegExpanded(megId)}
-                              type="button"
-                            >
-                              <span class="rf-meg-toggle-icon">{expanded ? '▼' : '▶'}</span>
-                              <span class="rf-meg-toggle-label">{getMegLabel(megId)}</span>
-                              {hasSelectedRf && (
-                                <span class="rf-meg-selected-badge">(ausgewählt)</span>
-                              )}
-                            </button>
-                            {expanded && (
-                              <div class="rf-meg-content">
-                                <p class="rf-meg-hint">
-                                  Aus dieser Gruppe kann nur eine Option gleichzeitig gewählt werden.
-                                </p>
-                                {megRfs.map((rf) => {
-                                  const ageValue = age();
-                                  const showAgeHint = rf.rf_id === "rf_parent_hip_fracture" && ageValue !== null && ageValue > 75;
-                                  
-                                  return (
-                                    <label class="rf-item">
-                                      <input
-                                        type="checkbox"
-                                        checked={selectedRfIds().has(rf.rf_id)}
-                                        onChange={() => toggleRf(rf.rf_id)}
-                                      />
-                                      <span>
-                                        {formatRfLabel(rf)}
-                                        {showAgeHint && (
-                                          <span class="rf-age-limit-hint">
-                                            {" "}(nur bis Alter 75)
-                                          </span>
-                                        )}
-                                      </span>
-                                    </label>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                      {/* Render non-MEG RFs */}
-                      {nonMegRfs.map((rf) => {
-                        const ageValue = age();
-                        const showAgeHint = rf.rf_id === "rf_parent_hip_fracture" && ageValue !== null && ageValue > 75;
-                        
-                        return (
-                          <label class="rf-item">
-                            <input
-                              type="checkbox"
-                              checked={selectedRfIds().has(rf.rf_id)}
-                              onChange={() => toggleRf(rf.rf_id)}
-                            />
-                            <span>
-                              {rf.label_de} (RR: {rf.rr_3y})
-                              {showAgeHint && (
-                                <span class="rf-age-limit-hint">
-                                  {" "}(nur bis Alter 75)
-                                </span>
-                              )}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </>
-                  );
-                    })()}
+                    <RiskFactorGroup
+                      groupId="G1_STURZ"
+                      groupTitle="G1: Sturzrisiko"
+                      groupHint="Aus dieser Gruppe wird automatisch nur der stärkste Risikofaktor berücksichtigt."
+                      rfs={groups.G1_STURZ}
+                      megGroups={megGroups.G1_STURZ}
+                      isExpanded={isGroupExpanded("G1_STURZ")}
+                      selectedRfIds={selectedRfIds()}
+                      age={age()}
+                      onToggleExpanded={() => toggleGroupExpanded("G1_STURZ")}
+                      onToggleMegExpanded={toggleMegExpanded}
+                      isMegExpanded={isMegExpanded}
+                      onToggleRf={toggleRf}
+                      getMegLabel={getMegLabel}
+                      formatRfLabel={formatRfLabel}
+                    />
+                    <RiskFactorGroup
+                      groupId="G2_RA_GC"
+                      groupTitle="G2: Rheumatoide Arthritis / Glukokortikoide"
+                      groupHint="Aus dieser Gruppe wird automatisch nur der stärkste Risikofaktor berücksichtigt."
+                      rfs={groups.G2_RA_GC}
+                      megGroups={megGroups.G2_RA_GC}
+                      isExpanded={isGroupExpanded("G2_RA_GC")}
+                      selectedRfIds={selectedRfIds()}
+                      age={age()}
+                      onToggleExpanded={() => toggleGroupExpanded("G2_RA_GC")}
+                      onToggleMegExpanded={toggleMegExpanded}
+                      isMegExpanded={isMegExpanded}
+                      onToggleRf={toggleRf}
+                      getMegLabel={getMegLabel}
+                      formatRfLabel={formatRfLabel}
+                    />
+                    <RiskFactorGroup
+                      groupId="G3_OTHER"
+                      groupTitle="G3: Sonstige Risikofaktoren"
+                      groupHint="Bis zu zwei Risikofaktoren können berücksichtigt werden."
+                      rfs={groups.G3_OTHER}
+                      megGroups={megGroups.G3_OTHER}
+                      isExpanded={isGroupExpanded("G3_OTHER")}
+                      selectedRfIds={selectedRfIds()}
+                      age={age()}
+                      onToggleExpanded={() => toggleGroupExpanded("G3_OTHER")}
+                      onToggleMegExpanded={toggleMegExpanded}
+                      isMegExpanded={isMegExpanded}
+                      onToggleRf={toggleRf}
+                      getMegLabel={getMegLabel}
+                      formatRfLabel={formatRfLabel}
+                    />
                   </>
-                )}
-              </div>
-
-              <div class="rf-group">
-                <button
-                  class="rf-group-toggle"
-                  onClick={() => toggleGroupExpanded("G2_RA_GC")}
-                  type="button"
-                >
-                  <span class="rf-group-toggle-icon">
-                    {isGroupExpanded("G2_RA_GC") ? '▼' : '▶'}
-                  </span>
-                  <h3 class="rf-group-title">G2: Rheumatoide Arthritis / Glukokortikoide</h3>
-                </button>
-                {isGroupExpanded("G2_RA_GC") && (
-                  <>
-                    <p class="rf-group-hint">
-                      Aus dieser Gruppe wird automatisch nur der stärkste Risikofaktor berücksichtigt.
-                    </p>
-                    {(() => {
-                  const { groups, megGroups } = groupedRfs();
-                  const g2Rfs = groups.G2_RA_GC;
-                  const g2MegGroups = megGroups.G2_RA_GC;
-                  
-                  // Get RFs that are in MEGs
-                  const rfsInMegs = new Set<string>();
-                  Object.values(g2MegGroups).forEach((megRfs) => {
-                    megRfs.forEach((rf) => rfsInMegs.add(rf.rf_id));
-                  });
-                  
-                  // Separate MEG and non-MEG RFs
-                  const nonMegRfs = g2Rfs.filter((rf) => !rfsInMegs.has(rf.rf_id));
-                  
-                  return (
-                    <>
-                      {/* Render MEG groups */}
-                      {Object.entries(g2MegGroups).map(([megId, megRfs]) => {
-                        const expanded = isMegExpanded(megId);
-                        const hasSelectedRf = megRfs.some((rf) => selectedRfIds().has(rf.rf_id));
-                        
-                        return (
-                          <div class="rf-meg-subgroup">
-                            <button
-                              class="rf-meg-toggle"
-                              onClick={() => toggleMegExpanded(megId)}
-                              type="button"
-                            >
-                              <span class="rf-meg-toggle-icon">{expanded ? '▼' : '▶'}</span>
-                              <span class="rf-meg-toggle-label">{getMegLabel(megId)}</span>
-                              {hasSelectedRf && (
-                                <span class="rf-meg-selected-badge">(ausgewählt)</span>
-                              )}
-                            </button>
-                            {expanded && (
-                              <div class="rf-meg-content">
-                                <p class="rf-meg-hint">
-                                  Aus dieser Gruppe kann nur eine Option gleichzeitig gewählt werden.
-                                </p>
-                                {megRfs.map((rf) => {
-                                  const ageValue = age();
-                                  const showAgeHint = rf.rf_id === "rf_parent_hip_fracture" && ageValue !== null && ageValue > 75;
-                                  
-                                  return (
-                                    <label class="rf-item">
-                                      <input
-                                        type="checkbox"
-                                        checked={selectedRfIds().has(rf.rf_id)}
-                                        onChange={() => toggleRf(rf.rf_id)}
-                                      />
-                                      <span>
-                                        {formatRfLabel(rf)}
-                                        {showAgeHint && (
-                                          <span class="rf-age-limit-hint">
-                                            {" "}(nur bis Alter 75)
-                                          </span>
-                                        )}
-                                      </span>
-                                    </label>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                      {/* Render non-MEG RFs */}
-                      {nonMegRfs.map((rf) => {
-                        const ageValue = age();
-                        const showAgeHint = rf.rf_id === "rf_parent_hip_fracture" && ageValue !== null && ageValue > 75;
-                        
-                        return (
-                          <label class="rf-item">
-                            <input
-                              type="checkbox"
-                              checked={selectedRfIds().has(rf.rf_id)}
-                              onChange={() => toggleRf(rf.rf_id)}
-                            />
-                            <span>
-                              {rf.label_de} (RR: {rf.rr_3y})
-                              {showAgeHint && (
-                                <span class="rf-age-limit-hint">
-                                  {" "}(nur bis Alter 75)
-                                </span>
-                              )}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </>
-                  );
-                    })()}
-                  </>
-                )}
-              </div>
-
-              <div class="rf-group">
-                <button
-                  class="rf-group-toggle"
-                  onClick={() => toggleGroupExpanded("G3_OTHER")}
-                  type="button"
-                >
-                  <span class="rf-group-toggle-icon">
-                    {isGroupExpanded("G3_OTHER") ? '▼' : '▶'}
-                  </span>
-                  <h3 class="rf-group-title">G3: Sonstige Risikofaktoren</h3>
-                </button>
-                {isGroupExpanded("G3_OTHER") && (
-                  <>
-                    <p class="rf-group-hint">
-                      Bis zu zwei Risikofaktoren können berücksichtigt werden.
-                    </p>
-                    {(() => {
-                  const { groups, megGroups } = groupedRfs();
-                  const g3Rfs = groups.G3_OTHER;
-                  const g3MegGroups = megGroups.G3_OTHER;
-                  
-                  // Get RFs that are in MEGs
-                  const rfsInMegs = new Set<string>();
-                  Object.values(g3MegGroups).forEach((megRfs) => {
-                    megRfs.forEach((rf) => rfsInMegs.add(rf.rf_id));
-                  });
-                  
-                  // Separate MEG and non-MEG RFs
-                  const nonMegRfs = g3Rfs.filter((rf) => !rfsInMegs.has(rf.rf_id));
-                  
-                  return (
-                    <>
-                      {/* Render MEG groups */}
-                      {Object.entries(g3MegGroups).map(([megId, megRfs]) => {
-                        const expanded = isMegExpanded(megId);
-                        const hasSelectedRf = megRfs.some((rf) => selectedRfIds().has(rf.rf_id));
-                        
-                        return (
-                          <div class="rf-meg-subgroup">
-                            <button
-                              class="rf-meg-toggle"
-                              onClick={() => toggleMegExpanded(megId)}
-                              type="button"
-                            >
-                              <span class="rf-meg-toggle-icon">{expanded ? '▼' : '▶'}</span>
-                              <span class="rf-meg-toggle-label">{getMegLabel(megId)}</span>
-                              {hasSelectedRf && (
-                                <span class="rf-meg-selected-badge">(ausgewählt)</span>
-                              )}
-                            </button>
-                            {expanded && (
-                              <div class="rf-meg-content">
-                                <p class="rf-meg-hint">
-                                  Aus dieser Gruppe kann nur eine Option gleichzeitig gewählt werden.
-                                </p>
-                                {megRfs.map((rf) => {
-                                  const ageValue = age();
-                                  const showAgeHint = rf.rf_id === "rf_parent_hip_fracture" && ageValue !== null && ageValue > 75;
-                                  
-                                  return (
-                                    <label class="rf-item">
-                                      <input
-                                        type="checkbox"
-                                        checked={selectedRfIds().has(rf.rf_id)}
-                                        onChange={() => toggleRf(rf.rf_id)}
-                                      />
-                                      <span>
-                                        {formatRfLabel(rf)}
-                                        {showAgeHint && (
-                                          <span class="rf-age-limit-hint">
-                                            {" "}(nur bis Alter 75)
-                                          </span>
-                                        )}
-                                      </span>
-                                    </label>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                      {/* Render non-MEG RFs */}
-                      {nonMegRfs.map((rf) => {
-                        const ageValue = age();
-                        const showAgeHint = rf.rf_id === "rf_parent_hip_fracture" && ageValue !== null && ageValue > 75;
-                        
-                        return (
-                          <label class="rf-item">
-                            <input
-                              type="checkbox"
-                              checked={selectedRfIds().has(rf.rf_id)}
-                              onChange={() => toggleRf(rf.rf_id)}
-                            />
-                            <span>
-                              {rf.label_de} (RR: {rf.rr_3y})
-                              {showAgeHint && (
-                                <span class="rf-age-limit-hint">
-                                  {" "}(nur bis Alter 75)
-                                </span>
-                              )}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </>
-                  );
-                    })()}
-                  </>
-                )}
-              </div>
+                );
+              })()}
             </div>
           )}
         </div>
