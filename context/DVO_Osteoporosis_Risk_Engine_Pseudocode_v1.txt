@@ -1,0 +1,159 @@
+# DVO Osteoporosis Risk Engine — Pseudocode (v1)
+# Scope: 3-year fracture risk assessment according to DVO 2023
+# Audience: General practice / education
+# Notes:
+# - Human-readable, machine-evaluable
+# - Deterministic selection of risk multipliers
+# - Case Finding, DXA, and Fracture entry converge here
+
+# =========================
+# INPUT (minimal)
+# =========================
+patient.sex ∈ {female, male}
+patient.age_years : int
+
+# Optional / may be missing during Case Finding
+patient.tscore_total_hip : float | null   # REQUIRED for "WITH_BMD" table lookup
+
+# Risk factors (user may select many)
+rf.selected : set<RF_ID>
+
+# Event data (for fracture entry & IFR)
+event.fracture : list<fracture_event>  # each has: type ∈ {hip, vertebral, other}, date
+event.falls_last_12m : int | null
+event.oral_gc : {
+    pred_eq_mg_per_day : float,
+    duration_months : int,
+    started_or_dose_increased_within_last_12m : bool
+} | null
+
+
+# =========================
+# DERIVED FLAGS
+# =========================
+
+# 1) Fracture entry (skips case-finding question only)
+FRACTURE_ENTRY =
+    EXISTS(event.fracture where age_at_event >= 50)
+    OR (postmenopausal_female AND age < 50 AND EXISTS(event.fracture))
+
+# 2) Imminent Fracture Risk (IFR) — STRICT, FIXED
+IFR = FALSE
+
+IF EXISTS(event.fracture where type == "hip" AND date_within_last_12_months == TRUE):
+    IFR = TRUE
+
+IF EXISTS(event.fracture where type == "vertebral" AND date_within_last_12_months == TRUE):
+    IFR = TRUE
+
+IF event.falls_last_12m != null AND event.falls_last_12m >= 2:
+    IFR = TRUE
+
+IF event.oral_gc != null
+   AND event.oral_gc.started_or_dose_increased_within_last_12m == TRUE
+   AND event.oral_gc.pred_eq_mg_per_day > 5
+   AND event.oral_gc.duration_months > 3:
+       IFR = TRUE
+
+
+# 3) Strong / Irreversible Risk Factors (Minimal List A)
+# Placeholder set to be defined explicitly from guideline wording
+STRONG_IRREVERSIBLE_RF =
+    EXISTS(rf.selected ∩ STRONG_RF_SET_A)
+
+
+# =========================
+# RISK MULTIPLIER SELECTION
+# =========================
+
+# Each RF has:
+# - group ∈ {G1_STURZ, G2_RA_GC, G3_OTHER}
+# - rr_3y : float (risk multiplier)
+
+candidates = MAP rf.selected -> (RF_ID, group, rr_3y)
+
+# Exclusive groups: keep only strongest per group
+best_g1 = MAX_RR(candidates where group == G1_STURZ)      # 0..1
+best_g2 = MAX_RR(candidates where group == G2_RA_GC)      # 0..1
+
+# Non-exclusive group: allow up to two strongest
+sorted_g3 = SORT_DESC(candidates where group == G3_OTHER by rr_3y)
+
+# Build candidate pool ("race")
+pool = []
+IF best_g1 != null: pool.add(best_g1)
+IF best_g2 != null: pool.add(best_g2)
+IF sorted_g3.size >= 1: pool.add(sorted_g3[0])
+IF sorted_g3.size >= 2: pool.add(sorted_g3[1])
+
+# Choose the worst two overall
+sorted_pool = SORT_DESC(pool by rr_3y)
+chosen = TAKE_FIRST(sorted_pool, 2)
+
+# Compute combined multiplier
+IF chosen.size == 0:
+    multiplier = 1.0
+ELSE IF chosen.size == 1:
+    multiplier = chosen[0].rr_3y
+ELSE:
+    multiplier = chosen[0].rr_3y * chosen[1].rr_3y
+
+
+# =========================
+# THRESHOLD LOOKUP (DVO TABLES)
+# =========================
+
+mode = (patient.tscore_total_hip == null) ? "WITHOUT_BMD" : "WITH_BMD"
+
+req_mult_3  = lookup_required_multiplier(sex, age, tscore_total_hip?, tier="3%")
+req_mult_5  = lookup_required_multiplier(sex, age, tscore_total_hip?, tier="5%")
+req_mult_10 = lookup_required_multiplier(sex, age, tscore_total_hip?, tier="10%")
+
+# Determine reached tier
+IF multiplier >= req_mult_10:
+    risk_band = ">=10%"
+ELSE IF multiplier >= req_mult_5:
+    risk_band = "5–<10%"
+ELSE IF multiplier >= req_mult_3:
+    risk_band = "3–<5%"
+ELSE:
+    risk_band = "<3%"
+
+
+# =========================
+# RECOMMENDATION LOGIC
+# =========================
+
+IF risk_band == ">=10%":
+    recommendation = "Therapie indiziert (hoch)"
+
+ELSE IF risk_band == "5–<10%":
+    recommendation = "Therapie empfohlen"
+
+ELSE IF risk_band == "3–<5%":
+    IF IFR == TRUE OR STRONG_IRREVERSIBLE_RF == TRUE:
+        recommendation = "Therapie in Betracht ziehen (Trigger vorhanden)"
+    ELSE:
+        recommendation = "Keine spezifische Therapie; Prävention / Verlauf"
+
+ELSE:
+    recommendation = "Keine spezifische Therapie; Prävention / Verlauf"
+
+
+# =========================
+# TRANSPARENCY PAYLOAD (RESULT VIEW)
+# =========================
+
+explain = {
+    "chosen_risk_factors": chosen,
+    "combined_multiplier": multiplier,
+    "lookup_mode": mode,
+    "required_multipliers": {
+        "3%": req_mult_3,
+        "5%": req_mult_5,
+        "10%": req_mult_10
+    },
+    "risk_band": risk_band,
+    "imminent_fracture_risk": IFR,
+    "strong_irreversible_rf": STRONG_IRREVERSIBLE_RF
+}

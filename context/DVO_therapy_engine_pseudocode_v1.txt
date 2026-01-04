@@ -1,0 +1,87 @@
+# DVO Therapy Recommendation Engine — Pseudocode (v1)
+# Scope:
+#   Level 2 therapy recommendation AFTER risk determination and table lookup.
+#   DEGAM statements are preferred; deviations from DVO mainstream are flagged transparently.
+#
+# Inputs (context):
+#   crossed_threshold ∈ {"<3","3-5","5-10",">=10"}
+#   imminent_risk_flag : bool
+#   has_recent_hip_fracture_surgery : bool
+#   preferences / contraindication context (see Contraindication Engine)
+#
+# Output:
+#   Recommendation object with:
+#     - primary_class
+#     - primary_options (filtered)
+#     - secondary_considerations
+#     - guideline_strength (DVO + DEGAM)
+#     - deviation_flag (optional)
+#     - special_notes
+#     - sequence_hint
+
+function recommend_therapy_level2(context):
+    rec = new Recommendation()
+
+    # 1) Determine therapy class by risk band
+    if context.crossed_threshold == ">=10":
+        rec.primary_class = "osteoanabolic"
+        rec.primary_options = ["romosozumab","teriparatide"]
+        rec.guideline_strength = {
+            "DVO": {"grade":"A","text":"soll osteoanabol behandelt werden"},
+            "DEGAM": {"grade":"B","text":"sollte osteoanabol behandelt werden"}
+        }
+        rec.deviation_flag = "DEGAM_SOFTENING"
+
+    else if context.crossed_threshold == "5-10":
+        rec.primary_class = "antiresorptive"
+        rec.primary_options = rank_antiresorptives_minimal()
+        rec.guideline_strength = {
+            "DVO": {"grade":"A","text":"antiresorptiv empfohlen"},
+            "DEGAM": {"grade":"A","text":"antiresorptiv empfohlen"}
+        }
+        if context.imminent_risk_flag == true:
+            rec.secondary_considerations.append({
+                "class":"osteoanabolic",
+                "options":["romosozumab","teriparatide"],
+                "strength":"0",
+                "why":"imminentes Frakturrisiko"
+            })
+
+    else if context.crossed_threshold == "3-5":
+        rec.primary_class = "consider_medication"
+        rec.primary_options = rank_antiresorptives_minimal()
+        rec.required_rationale = "Nur bei starken/irreversiblen RF oder imminentem Risiko"
+        rec.guideline_strength = {
+            "DVO": {"grade":"0","text":"kann erwogen werden"},
+            "DEGAM": {"grade":"0","text":"kann erwogen werden"}
+        }
+
+    else:
+        rec.primary_class = "no_specific_drug"
+        rec.actions = ["Basismaßnahmen","Sturzprävention","Reevaluation"]
+        return rec
+
+    # 2) Apply minimal contraindication filtering
+    allowed, excluded = filter_by_minimal_contraindications(rec.primary_options, context)
+    rec.primary_options = allowed
+    rec.excluded_options = excluded
+
+    # 3) Special rules
+    if context.has_recent_hip_fracture_surgery == true and "zoledronate" in rec.primary_options:
+        rec.special_notes.append("Zoledronat idealerweise ≥2 Wochen postoperativ, sofern Versorgung stabil.")
+
+    if context.imminent_risk_flag == true and context.crossed_threshold in {"5-10",">=10"}:
+        rec.special_notes.append("Bei Kontraindikation gegen Romosozumab kann kurzzeitig Teriparatid + parenterales Antiresorptivum erwogen werden (0).")
+
+    # 4) Sequence hint
+    if rec.primary_class == "osteoanabolic":
+        rec.sequence_hint = "Osteoanabol zeitlich begrenzen, anschließend antiresorptive Erhaltungstherapie."
+    else:
+        rec.sequence_hint = "Wirksamkeit und Adhärenz regelmäßig überprüfen."
+
+    return rec
+
+
+function rank_antiresorptives_minimal():
+    # Minimal, order reflects practicality/adherence first
+    return ["alendronate","risedronate","zoledronate","denosumab","ibandronate","raloxifene","bazedoxifene"]

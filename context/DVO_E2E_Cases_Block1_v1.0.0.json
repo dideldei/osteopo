@@ -1,0 +1,181 @@
+{
+  "meta": {
+    "name": "DVO Osteoporose App — End-to-End Cases (Block 1, fixed)",
+    "version": "1.0.0",
+    "created_date": "2026-01-04",
+    "rules_fixed": [
+      "Age rows are age groups: 50 covers [50,55), etc.",
+      "T-score between bins maps to next worse bin; clamped to row-available bins.",
+      "DEGAM guidance is default; DVO mainstream shown as deviation/context where relevant."
+    ],
+    "dependencies": [
+      "DVO_Threshold_Tables_Bundle_v1.0.0.json",
+      "DVO_RF_Katalog_Rohdaten_v0.5.json",
+      "DVO_lookup_pseudocode_v1.txt",
+      "DVO_therapy_engine_pseudocode_v1.txt",
+      "DVO_contraindication_pseudocode_v1.txt"
+    ]
+  },
+  "cases": [
+    {
+      "case_id": "e2e_01",
+      "title": "Case finding ohne Anlass (keine RF, keine Fraktur)",
+      "inputs": {
+        "sex": "female",
+        "age_years": 62,
+        "rf_selected": [],
+        "events": {
+          "fracture": []
+        },
+        "dxa": {
+          "tscore_total_hip": null
+        }
+      },
+      "computed": {
+        "age_bin": 60,
+        "lookup_mode": "WITHOUT_BMD"
+      },
+      "expected": {
+        "workflow": {
+          "case_finding": "basisdiagnostik_and_dxa_recommended"
+        },
+        "risk_band": "<3% (keine RF/BMD-basierte Schwellenüberschreitung)",
+        "therapy_level1": "no_specific_drug",
+        "therapy_level2": "none"
+      }
+    },
+    {
+      "case_id": "e2e_02",
+      "title": "DXA vorhanden: Grenzfall (T-Score Zwischenwert → nächst schlechter), RF: Elternteil Hüftfraktur",
+      "inputs": {
+        "sex": "female",
+        "age_years": 67,
+        "rf_selected": [
+          "rf_parent_hip_fracture"
+        ],
+        "rr_selected": [
+          1.3
+        ],
+        "dxa": {
+          "tscore_total_hip": -2.8
+        }
+      },
+      "computed": {
+        "age_bin": 65,
+        "tscore_mapped": {
+          "3%": "-2.0",
+          "5%": "-2.5",
+          "10%": "-3.0"
+        },
+        "multiplier": 1.3,
+        "required_factor": {
+          "3%": 1.2,
+          "5%": 1.5,
+          "10%": 2.3
+        },
+        "risk_band": "3–<5% (1.3 ≥ 1.2, aber < 1.5)"
+      },
+      "expected": {
+        "therapy_level1": "no_specific_drug (3–5% ohne Trigger)",
+        "therapy_level2": "none",
+        "transparency": [
+          "T-Score -2.8 wurde konservativ gemappt (je Schwelle: 3%→-2.0, 5%→-2.5, 10%→-3.0)",
+          "DEGAM/DVO: 3–5% → Therapie nur bei Triggern (stark/irreversibel oder imminent)"
+        ]
+      }
+    },
+    {
+      "case_id": "e2e_03",
+      "title": "GC-Langzeittherapie: hoher Multiplikator (führt hier zu ≥10%)",
+      "inputs": {
+        "sex": "male",
+        "age_years": 72,
+        "rf_selected": [
+          "rf_gc_pred_gt_7_5mg_gt_3m"
+        ],
+        "rr_selected": [
+          4.0
+        ],
+        "dxa": {
+          "tscore_total_hip": -2.2
+        }
+      },
+      "computed": {
+        "age_bin": 70,
+        "tscore_mapped": {
+          "3%": "-1.5",
+          "5%": "-2.0",
+          "10%": "-2.5"
+        },
+        "multiplier": 4.0,
+        "required_factor": {
+          "3%": 1.1,
+          "5%": 1.3,
+          "10%": 1.7
+        },
+        "risk_band": ">=10% (4.0 ≥ 1.7)"
+      },
+      "expected": {
+        "therapy_level1": "osteoanabolic (>=10%)",
+        "therapy_level2": {
+          "default_guidance": "DEGAM",
+          "class": "osteoanabolic",
+          "options": [
+            "romosozumab",
+            "teriparatide"
+          ],
+          "deviation_note": "DVO stärker (A: 'soll'), DEGAM Standard abgeschwächt (B: 'sollte')"
+        }
+      }
+    },
+    {
+      "case_id": "e2e_04",
+      "title": ">=10% ohne Fraktur: RA + TBS (Top-2-RF) → osteoanabol, DEGAM Standard",
+      "inputs": {
+        "sex": "female",
+        "age_years": 75,
+        "rf_selected": [
+          "rf_rheumatoid_arthritis",
+          "rf_tbs_zscore_minus_2_5"
+        ],
+        "rr_selected": [
+          2.7,
+          1.8
+        ],
+        "dxa": {
+          "tscore_total_hip": -2.6
+        }
+      },
+      "computed": {
+        "age_bin": 75,
+        "tscore_mapped": {
+          "3%": "-1.0",
+          "5%": "-2.0",
+          "10%": "-3.0"
+        },
+        "multiplier": 4.86,
+        "required_factor": {
+          "3%": 1.2,
+          "5%": 1.1,
+          "10%": 1.2
+        },
+        "risk_band": ">=10% (4.86 ≥ 1.2)"
+      },
+      "expected": {
+        "therapy_level1": "osteoanabolic (>=10%)",
+        "therapy_level2": {
+          "default_guidance": "DEGAM",
+          "class": "osteoanabolic",
+          "options": [
+            "romosozumab",
+            "teriparatide"
+          ],
+          "deviation_note": "DVO stärker (A: 'soll'), DEGAM Standard abgeschwächt (B: 'sollte')"
+        },
+        "transparency": [
+          "RF-Top2-Regel: RA (2.7) und TBS -2.5 (1.8) gewählt; Multiplikation = 4.86"
+        ]
+      }
+    }
+  ]
+}

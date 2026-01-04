@@ -1,0 +1,731 @@
+{
+  "meta": {
+    "name": "DVO 2023 RF-Katalog (Rohdaten, tabellengetreu)",
+    "version": "v0.5.1",
+    "created_date": "2026-01-04",
+    "source_documents": [
+      {
+        "title": "Kurzfassung-Leitlinie DVO 2023 Version 2.2",
+        "file": "Kurzfassung-Leitlinie-DVO-2023-V2.2.pdf"
+      },
+      {
+        "title": "DVO Leitlinie Langfassung Version 2.1 (2023)",
+        "file": "DVO-Leitlinie-zur-Diagnostik-und-Therapie-der-Osteoporose-Version-2.1.-2023-002.pdf"
+      }
+    ],
+    "notes": [
+      "Rohdatenerfassung (1:1) aus Tabelle 2.1; MEG/Mutual-Exclusion-Gruppen werden später ergänzt.",
+      "group = G1_STURZ | G2_RA_GC | G3_OTHER (Engine-Gruppierung).",
+      "included_in_risk_calc=false kennzeichnet Risikoindikatoren (Basisdiagnostik), die laut Langfassung nicht in die Risikokalkulation eingehen.",
+      "v0.2: Ergänzt fehlende Risikoindikatoren (ohne RR) aus Kurzfassung Tabelle 2.1: Cushing/subklin. Hyperkortisolismus, GH-Mangel bei Hypophyseninsuffizienz, männlicher Hypogonadismus (hormonablativ/andere Ursache), BII Magenresektion/Gastrektomie.",
+      "v0.3: Ergänzt MEG (mutual_exclusion_group_id) für gestufte/äquivalente RF-Konzepte (optional leer, single_choice_optional) inkl. UI-Hinweis.",
+      "v0.4: Entfernt Immobilität und Frailty aus RF-Katalog (auf Nutzerwunsch). Ergänzt NVNH-Fraktur als Risikoindikator (nicht im Risikorechner) mit Exklusion zur proximalen Femurfraktur.",
+      "v0.5: NVNH-Risikoindikator vollständig entfernt. README-Sektion ergänzt zur Wartung, Erweiterung und Bündelung von RF.",
+      "v0.5.1: Ergänzt flags.strong_irreversible_A (Option A, minimalistisch) für Trigger-Logik (3–<5%-Zone)."
+    ],
+    "updated_date": "2026-01-04",
+    "mutual_exclusion_groups": [
+      {
+        "id": "meg_bmi_band",
+        "label_de": "BMI (Bänder)",
+        "mode": "single_choice_optional",
+        "ui_default": "hide_others_with_disclosure"
+      },
+      {
+        "id": "meg_tbs_zscore",
+        "label_de": "TBS Z-Score (Bänder)",
+        "mode": "single_choice_optional",
+        "ui_default": "hide_others_with_disclosure"
+      },
+      {
+        "id": "meg_t2dm_duration",
+        "label_de": "Diabetes Typ 2 (Dauer)",
+        "mode": "single_choice_optional",
+        "ui_default": "hide_others_with_disclosure"
+      },
+      {
+        "id": "meg_gc_dose",
+        "label_de": "Orale Glukokortikoide (Dosisstufen / jüngste Eskalation)",
+        "mode": "single_choice_optional",
+        "ui_default": "hide_others_with_disclosure"
+      },
+      {
+        "id": "meg_tsh_band",
+        "label_de": "TSH (Supprimiert)",
+        "mode": "single_choice_optional",
+        "ui_default": "hide_others_with_disclosure"
+      },
+      {
+        "id": "meg_genant_grade",
+        "label_de": "Wirbelkörperfraktur (Genant max. Grad)",
+        "mode": "single_choice_optional",
+        "ui_default": "hide_others_with_disclosure"
+      },
+      {
+        "id": "meg_wk_count_gt12m",
+        "label_de": "Wirbelkörperfraktur(en) >12 Monate (Anzahl)",
+        "mode": "single_choice_optional",
+        "ui_default": "hide_others_with_disclosure"
+      }
+    ]
+  },
+  "risk_factors": [
+    {
+      "rf_id": "rf_hip_fracture_last_12m",
+      "label_de": "Hüftfraktur im letzten Jahr (1‑Jahres‑Risiko)",
+      "rr_3y": 4.1,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "flags": {
+        "imminent_rr": true,
+        "strong_irreversible_A": true
+      },
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_hip_fracture_gt_12m",
+      "label_de": "Hüftfraktur, Zeitabstand > 12 Monate",
+      "rr_3y": 2.5,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "flags": {
+        "imminent_rr": false,
+        "strong_irreversible_A": true
+      },
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_vertebral_fracture_last_12m",
+      "label_de": "Wirbelkörperfraktur(en) im letzten Jahr",
+      "rr_3y": 2.9,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "flags": {
+        "imminent_rr": true
+      },
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_vertebral_fracture_gt_12m_1",
+      "label_de": "Wirbelkörperfraktur(en) > 12 Monate: 1 osteoporotischer Wirbelbruch",
+      "rr_3y": 2.0,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1",
+      "mutual_exclusion_group_id": "meg_wk_count_gt12m",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen."
+    },
+    {
+      "rf_id": "rf_vertebral_fracture_gt_12m_2",
+      "label_de": "Wirbelkörperfraktur(en) > 12 Monate: 2 osteoporotische Wirbelbrüche",
+      "rr_3y": 2.9,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1",
+      "mutual_exclusion_group_id": "meg_wk_count_gt12m",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen.",
+      "flags": {
+        "strong_irreversible_A": true
+      }
+    },
+    {
+      "rf_id": "rf_vertebral_fracture_gt_12m_3plus",
+      "label_de": "Wirbelkörperfraktur(en) > 12 Monate: 3 oder mehr osteoporotische Wirbelbrüche",
+      "rr_3y": 5.0,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1",
+      "mutual_exclusion_group_id": "meg_wk_count_gt12m",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen.",
+      "flags": {
+        "strong_irreversible_A": true
+      }
+    },
+    {
+      "rf_id": "rf_vertebral_genant_max_grade_1",
+      "label_de": "Wirbelbruch Schweregrad max. Grad 1 (Genant)",
+      "rr_3y": 2.0,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1",
+      "mutual_exclusion_group_id": "meg_genant_grade",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen."
+    },
+    {
+      "rf_id": "rf_vertebral_genant_max_grade_2",
+      "label_de": "Wirbelbruch Schweregrad max. Grad 2 (Genant)",
+      "rr_3y": 2.9,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1",
+      "mutual_exclusion_group_id": "meg_genant_grade",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen.",
+      "flags": {
+        "strong_irreversible_A": true
+      }
+    },
+    {
+      "rf_id": "rf_vertebral_genant_max_grade_3",
+      "label_de": "Wirbelbruch Schweregrad max. Grad 3 (Genant)",
+      "rr_3y": 5.0,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1",
+      "mutual_exclusion_group_id": "meg_genant_grade",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen.",
+      "flags": {
+        "strong_irreversible_A": true
+      }
+    },
+    {
+      "rf_id": "rf_humerus_fracture",
+      "label_de": "Humerusfraktur",
+      "rr_3y": 1.7,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_pelvis_fracture",
+      "label_de": "Beckenfraktur",
+      "rr_3y": 1.7,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_forearm_fracture",
+      "label_de": "Unterarmfraktur",
+      "rr_3y": 1.6,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_gc_pred_lt_2_5mg_gt_3m",
+      "label_de": "Orale Glukokortikoide: Dosis < 2,5 mg Prednisolonäquivalent/Tag > 3 Monate",
+      "rr_3y": 1.4,
+      "group": "G2_RA_GC",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1",
+      "mutual_exclusion_group_id": "meg_gc_dose",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen."
+    },
+    {
+      "rf_id": "rf_gc_pred_2_5_to_7_5mg_gt_3m",
+      "label_de": "Orale Glukokortikoide: Dosis 2,5–7,5 mg Prednisolonäquivalent/Tag > 3 Monate",
+      "rr_3y": 2.3,
+      "group": "G2_RA_GC",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1",
+      "mutual_exclusion_group_id": "meg_gc_dose",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen."
+    },
+    {
+      "rf_id": "rf_gc_pred_gt_7_5mg_gt_3m",
+      "label_de": "Orale Glukokortikoide: Dosis > 7,5 mg Prednisolonäquivalent/Tag > 3 Monate",
+      "rr_3y": 4.0,
+      "group": "G2_RA_GC",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1",
+      "mutual_exclusion_group_id": "meg_gc_dose",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen.",
+      "flags": {
+        "strong_irreversible_A": true
+      }
+    },
+    {
+      "rf_id": "rf_gc_pred_gt_5mg_started_or_increased_last_12m",
+      "label_de": "Orale Glukokortikoide: Dosis > 5 mg Prednisolonäquivalent/Tag begonnen oder erhöht im letzten Jahr (1‑Jahres‑RR)",
+      "rr_3y": 4.9,
+      "group": "G2_RA_GC",
+      "included_in_risk_calc": true,
+      "flags": {
+        "imminent_rr": true
+      },
+      "source_ref": "DVO2023_Kurz_T2.1",
+      "mutual_exclusion_group_id": "meg_gc_dose",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen."
+    },
+    {
+      "rf_id": "rf_rheumatoid_arthritis",
+      "label_de": "Rheumatoide Arthritis",
+      "rr_3y": 2.7,
+      "group": "G2_RA_GC",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_ppi_gt_3m",
+      "label_de": "Protonenpumpenhemmer > 3 Monate",
+      "rr_3y": 1.4,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_opioids",
+      "label_de": "Opioide",
+      "rr_3y": 1.4,
+      "group": "G1_STURZ",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "ri_aromatase_inhibitor_therapy_start",
+      "label_de": "Aromatasehemmer mit Beginn der Therapie",
+      "rr_3y": 1.7,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": false,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_fall_1_last_12m",
+      "label_de": "Sturz in den letzten 12 Monaten",
+      "rr_3y": 1.6,
+      "group": "G1_STURZ",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_falls_gt_1_last_12m",
+      "label_de": "> 1 Sturz in den letzten 12 Monaten (1‑Jahres‑RR)",
+      "rr_3y": 2.0,
+      "group": "G1_STURZ",
+      "included_in_risk_calc": true,
+      "flags": {
+        "imminent_rr": true
+      },
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_tug_gt_12s",
+      "label_de": "Timed Up-and-Go-Test > 12 Sek.",
+      "rr_3y": 1.8,
+      "group": "G1_STURZ",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_chronic_hyponatremia",
+      "label_de": "Chronische Hyponatriämie",
+      "rr_3y": 1.4,
+      "group": "G1_STURZ",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_depression_antidepressants",
+      "label_de": "Depression/Antidepressiva",
+      "rr_3y": 1.3,
+      "group": "G1_STURZ",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_epilepsy_anticonvulsants",
+      "label_de": "Epilepsie und Antikonvulsiva",
+      "rr_3y": 1.2,
+      "group": "G1_STURZ",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_dementia_alzheimer",
+      "label_de": "Demenz / M. Alzheimer",
+      "rr_3y": 1.6,
+      "group": "G1_STURZ",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_parkinson",
+      "label_de": "M. Parkinson",
+      "rr_3y": 1.7,
+      "group": "G1_STURZ",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_multiple_sclerosis",
+      "label_de": "Multiple Sklerose",
+      "rr_3y": 2.1,
+      "group": "G1_STURZ",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_stroke",
+      "label_de": "Schlaganfall",
+      "rr_3y": 1.6,
+      "group": "G1_STURZ",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "ri_immobility_walking_aid",
+      "label_de": "Immobilität (angewiesen sein auf eine Gehhilfe)",
+      "rr_3y": 1.7,
+      "group": "G1_STURZ",
+      "included_in_risk_calc": false,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S244"
+    },
+    {
+      "rf_id": "rf_diabetes_type_1",
+      "label_de": "Diabetes mellitus Typ I",
+      "rr_3y": 2.5,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S245"
+    },
+    {
+      "rf_id": "rf_diabetes_type_2_5_10y",
+      "label_de": "Diabetes mellitus Typ II, seit 5–10 Jahren",
+      "rr_3y": 1.1,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S245",
+      "mutual_exclusion_group_id": "meg_t2dm_duration",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen."
+    },
+    {
+      "rf_id": "rf_diabetes_type_2_gt_10y",
+      "label_de": "Diabetes mellitus Typ II, seit > 10 Jahren",
+      "rr_3y": 1.6,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S245",
+      "mutual_exclusion_group_id": "meg_t2dm_duration",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen."
+    },
+    {
+      "rf_id": "rf_primary_hyperparathyroidism",
+      "label_de": "Primärer Hyperparathyreoidismus",
+      "rr_3y": 2.2,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S245",
+      "flags": {
+        "strong_irreversible_A": true
+      }
+    },
+    {
+      "rf_id": "rf_tsh_0_1_to_0_45",
+      "label_de": "TSH 0,1–0,45 mU/l",
+      "rr_3y": 1.2,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S245",
+      "mutual_exclusion_group_id": "meg_tsh_band",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen."
+    },
+    {
+      "rf_id": "rf_tsh_lt_0_1",
+      "label_de": "TSH < 0,1 mU/l",
+      "rr_3y": 1.2,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S245",
+      "mutual_exclusion_group_id": "meg_tsh_band",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen."
+    },
+    {
+      "rf_id": "rf_parent_hip_fracture",
+      "label_de": "Mutter oder Vater mit Hüftbruch",
+      "rr_3y": 1.3,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_alcohol_gt_50g_day",
+      "label_de": "Erheblicher Alkoholkonsum (ab 50 g/Tag)",
+      "rr_3y": 1.9,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S244"
+    },
+    {
+      "rf_id": "rf_smoking_gt_10_day",
+      "label_de": "Rauchen (aktuell > 10 Zigaretten/Tag)",
+      "rr_3y": 1.5,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S244"
+    },
+    {
+      "rf_id": "rf_copd",
+      "label_de": "Chronische obstruktive Lungenerkrankung (COPD)",
+      "rr_3y": 1.3,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S244"
+    },
+    {
+      "rf_id": "rf_bmi_le_15",
+      "label_de": "Body Mass Index (BMI) ≤ 15 kg/m²",
+      "rr_3y": 2.2,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S244",
+      "mutual_exclusion_group_id": "meg_bmi_band",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen."
+    },
+    {
+      "rf_id": "rf_bmi_15_to_18_5",
+      "label_de": "Body Mass Index (BMI) 15–18,5 kg/m²",
+      "rr_3y": 1.7,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S244",
+      "mutual_exclusion_group_id": "meg_bmi_band",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen."
+    },
+    {
+      "rf_id": "rf_bmi_18_5_to_lt_20",
+      "label_de": "Body Mass Index (BMI) 18,5–<20 kg/m²",
+      "rr_3y": 1.3,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S244",
+      "mutual_exclusion_group_id": "meg_bmi_band",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen."
+    },
+    {
+      "rf_id": "rf_chronic_heart_failure",
+      "label_de": "Herzinsuffizienz, chronisch",
+      "rr_3y": 1.5,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S244"
+    },
+    {
+      "rf_id": "rf_ckd_3a_3b_4",
+      "label_de": "Niereninsuffizienz ab CKD 3a, 3b, 4",
+      "rr_3y": 1.6,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S244"
+    },
+    {
+      "rf_id": "rf_mgus",
+      "label_de": "Monoklonale Gammopathie unklarer Signifikanz (MGUS)",
+      "rr_3y": 2.0,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S244"
+    },
+    {
+      "rf_id": "rf_axial_spondyloarthritis",
+      "label_de": "Axiale Spondyloarthritis / Spondylitis ankylosans",
+      "rr_3y": 1.6,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "rf_tbs_zscore_minus_1_0",
+      "label_de": "TBS Z-Score −1,0 SD",
+      "rr_3y": 1.3,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1",
+      "mutual_exclusion_group_id": "meg_tbs_zscore",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen."
+    },
+    {
+      "rf_id": "rf_tbs_zscore_minus_1_5",
+      "label_de": "TBS Z-Score −1,5 SD",
+      "rr_3y": 1.4,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1",
+      "mutual_exclusion_group_id": "meg_tbs_zscore",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen."
+    },
+    {
+      "rf_id": "rf_tbs_zscore_minus_2_0",
+      "label_de": "TBS Z-Score −2,0 SD",
+      "rr_3y": 1.6,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1",
+      "mutual_exclusion_group_id": "meg_tbs_zscore",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen."
+    },
+    {
+      "rf_id": "rf_tbs_zscore_minus_2_5",
+      "label_de": "TBS Z-Score −2,5 SD",
+      "rr_3y": 1.8,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": true,
+      "source_ref": "DVO2023_Kurz_T2.1",
+      "mutual_exclusion_group_id": "meg_tbs_zscore",
+      "exclusion_mode": "single_choice_optional",
+      "ui_hidden_when_other_selected": true,
+      "ui_disclosure_text": "Weitere Optionen vorhanden (ausgeblendet) – zum Ändern abwählen."
+    },
+    {
+      "rf_id": "ri_celiac_disease",
+      "label_de": "Zöliakie",
+      "rr_3y": null,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": false,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "ri_crohns_disease",
+      "label_de": "Morbus Crohn",
+      "rr_3y": null,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": false,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "ri_ulcerative_colitis",
+      "label_de": "Colitis ulcerosa",
+      "rr_3y": null,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": false,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "ri_systemic_lupus_erythematosus",
+      "label_de": "Systemischer Lupus erythematodes",
+      "rr_3y": null,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": false,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "ri_hiv",
+      "label_de": "HIV",
+      "rr_3y": null,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": false,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S244"
+    },
+    {
+      "rf_id": "ri_bariatric_surgery",
+      "label_de": "Bariatrische Operation",
+      "rr_3y": null,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": false,
+      "source_ref": "DVO2023_Lang_Tab_Risikofaktoren_S244"
+    },
+    {
+      "rf_id": "ri_cushing_syndrome_or_subclinical_hypercortisolism",
+      "label_de": "Cushing-Syndrom und subklinischer Hyperkortisolismus",
+      "rr_3y": null,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": false,
+      "source_ref": "DVO2023_Kurz_T2.1",
+      "flags": {
+        "strong_irreversible_A": true
+      }
+    },
+    {
+      "rf_id": "ri_growth_hormone_deficiency_hypopituitarism",
+      "label_de": "Wachstumshormonmangel bei Hypophyseninsuffizienz",
+      "rr_3y": null,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": false,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "ri_male_hypogonadism_hormone_ablative_therapy",
+      "label_de": "Männlicher Hypogonadismus durch hormonablative Therapie",
+      "rr_3y": null,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": false,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "ri_male_hypogonadism_other_cause",
+      "label_de": "Männlicher Hypogonadismus anderer Ursache",
+      "rr_3y": null,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": false,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    },
+    {
+      "rf_id": "ri_bii_gastrectomy_or_gastric_resection",
+      "label_de": "BII Magenresektion oder Gastrektomie",
+      "rr_3y": null,
+      "group": "G3_OTHER",
+      "included_in_risk_calc": false,
+      "source_ref": "DVO2023_Kurz_T2.1"
+    }
+  ],
+  "README": {
+    "purpose": "Dieses JSON ist die kanonische, maschinenlesbare Abbildung der DVO-Risikofaktoren (DVO 2023) als Rohdatenbasis.",
+    "design_principles": [
+      "Tabellengetreu: RF entsprechen der Kurzfassung/Langfassung der DVO-Leitlinie.",
+      "Trennung von Risikoindikatoren (Basisdiagnostik) und Risikofaktoren (mit RR für Risikokalkulation).",
+      "Maximal zwei RF werden in die Risikokalkulation einbezogen (siehe Engine-Pseudocode).",
+      "Exklusive Gruppen (Sturz, RA+GC) werden engine-seitig berücksichtigt.",
+      "Mutual-Exclusion-Gruppen (MEG) dienen der UI- und Eingabekonsistenz, nicht der Risikologik."
+    ],
+    "how_to_add_risk_factors": [
+      "Neuen RF als neues Objekt in 'risk_factors' ergänzen.",
+      "Eindeutige, sprechende 'rf_id' vergeben (stabil, nicht umnummerieren).",
+      "Falls der RF in die Risikokalkulation eingeht: 'rr_3y' setzen und 'included_in_risk_calc=true'.",
+      "Falls der RF nur Basisdiagnostik auslöst: 'rr_3y=null' und 'included_in_risk_calc=false'.",
+      "Gruppe korrekt setzen: G1_STURZ | G2_RA_GC | G3_OTHER."
+    ],
+    "how_to_bundle_or_modify": [
+      "Äquivalente oder gestufte RF (z.B. BMI, TBS, GC-Dosis) sollen über 'mutual_exclusion_group_id' gebündelt werden.",
+      "MEGs sind optional leer ('single_choice_optional') und erzwingen keine Auswahl.",
+      "Bestehende RF nicht löschen oder umdeuten, sondern ggf. als deprecated markieren (zukünftig)."
+    ],
+    "traceability": [
+      "Jeder RF muss ein 'source_ref' besitzen (Tabelle/Seite der DVO-Leitlinie).",
+      "Änderungen sollen über Versionsbump in meta.version dokumentiert werden."
+    ],
+    "warnings": [
+      "Keine eigenständige Ableitung neuer RR ohne Leitlinienbezug.",
+      "Keine Vermischung von UI-Hilfen (MEG) mit medizinischer Logik.",
+      "Konflikte zwischen Kurz- und Langfassung explizit dokumentieren, nicht still auflösen."
+    ]
+  }
+}

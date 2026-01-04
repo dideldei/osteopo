@@ -1,0 +1,81 @@
+# DVO Threshold Lookup — Pseudocode (v1, corrected)
+# Purpose:
+#   Return the required multiplier ("Indikationsschwelle Faktor") from DVO tables
+#   for a given sex, age, (optional) total-hip T-score, and risk tier (3%/5%/10%).
+#
+# Inputs:
+#   sex ∈ {female, male}
+#   age_years : int
+#   tscore_total_hip : float | null   # if null => "WITHOUT_BMD" column
+#   tier ∈ {"3%", "5%", "10%"}
+#
+# Data:
+#   TABLES[sex][tier] has:
+#     - age_bins: list<int> (e.g., [50,55,60,...,90])
+#     - tscore_bins: list<float> (e.g., [0.0,-0.5,-1.0,...,-4.0])
+#     - values[age_bin][tscore_bin] -> required_multiplier (number)
+#     - values[age_bin]["no_bmd"] -> required_multiplier
+#
+# Fixed mapping rules (project decisions):
+#   - Age rows are AGE GROUPS: row "50" covers [50,55), row "55" covers [55,60), etc.
+#   - T-score between bins => map to NEXT WORSE (more negative) bin.
+#   - T-score better than best bin (0.0) => map to 0.0 bin.
+#   - If tscore_total_hip is null => use "no_bmd" column only.
+
+function lookup_required_multiplier(sex, age_years, tscore_total_hip, tier):
+    # 1) Select table
+    table = TABLES[sex][tier]
+
+    # 2) Map age to age_bin (age group)
+    age_bin = floor_to_bin(age_years, step=5)
+
+    # Guardrails: clamp into supported age range
+    age_bin = clamp(age_bin, MIN(table.age_bins), MAX(table.age_bins))
+
+    # 3) WITHOUT_BMD path
+    if tscore_total_hip == null:
+        return table.values[age_bin]["no_bmd"]
+
+    # 4) WITH_BMD path: map T-score to tscore_bin
+    bins = table.tscore_bins              # e.g. [0.0, -0.5, -1.0, ..., -4.0]
+    best_bin = bins[0]
+    worst_bin = bins[len(bins)-1]
+
+    # 4a) Exact match first (important)
+    if tscore_total_hip in bins:
+        tscore_bin = tscore_total_hip
+        return table.values[age_bin][tscore_bin]
+
+    # 4b) Better than best bin => best bin (0.0)
+    if tscore_total_hip > best_bin:
+        tscore_bin = best_bin
+        return table.values[age_bin][tscore_bin]
+
+    # 4c) Worse than worst bin => worst bin (clamp)
+    if tscore_total_hip < worst_bin:
+        tscore_bin = worst_bin
+        return table.values[age_bin][tscore_bin]
+
+    # 4d) Between bins => next worse (more negative)
+    #     Example: -2.8 => -3.0 (next worse than -2.5)
+    for i from 1 to len(bins)-1:
+        prev = bins[i-1]   # less negative (better)
+        curr = bins[i]     # more negative (worse)
+        if tscore_total_hip < prev AND tscore_total_hip > curr:
+            tscore_bin = curr
+            return table.values[age_bin][tscore_bin]
+
+    # 4e) Fallback (should never happen due to guards)
+    tscore_bin = worst_bin
+    return table.values[age_bin][tscore_bin]
+
+
+# Helpers
+function floor_to_bin(x, step):
+    # returns largest multiple of 'step' <= x
+    return (x // step) * step
+
+function clamp(x, lo, hi):
+    if x < lo: return lo
+    if x > hi: return hi
+    return x

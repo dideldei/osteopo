@@ -1,0 +1,53 @@
+# DVO Minimal Contraindication Engine — Pseudocode (v1)
+# Purpose:
+#   Filter therapy options based on HARD show-stopper contraindications only.
+#   Everything else is advisory (shared decision), not exclusionary.
+#
+# Inputs (context):
+#   renal_ok : bool | null              # null = unknown (do not exclude)
+#   severe_esophageal_disease : bool
+#   unable_to_remain_upright : bool
+#   hypocalcemia_uncontrolled : bool
+#   recent_cv_event_12m : bool           # MI or stroke within 12 months
+#   bone_malignancy_or_skeletal_rt : bool # malignancy or skeletal radiation
+#
+# Output:
+#   allowed_options : list<string>
+#   excluded_options : map<option, reason>
+
+function filter_by_minimal_contraindications(options, context):
+    allowed = []
+    excluded = {}
+
+    for option in options:
+        if option in {"alendronate","risedronate"}:
+            if context.severe_esophageal_disease == true or context.unable_to_remain_upright == true:
+                excluded[option] = "Schwere Ösophaguserkrankung oder fehlende Aufrichtigkeit (oral kontraindiziert)"
+                continue
+
+        if option == "zoledronate":
+            if context.renal_ok == false:
+                excluded[option] = "Schwere Niereninsuffizienz (Zoledronat kontraindiziert)"
+                continue
+            if context.hypocalcemia_uncontrolled == true:
+                excluded[option] = "Unkorrigierte Hypokalzämie (vorher korrigieren)"
+                continue
+
+        if option == "denosumab":
+            if context.hypocalcemia_uncontrolled == true:
+                excluded[option] = "Unkorrigierte Hypokalzämie (vorher korrigieren)"
+                continue
+
+        if option == "romosozumab":
+            if context.recent_cv_event_12m == true:
+                excluded[option] = "Frisches kardiovaskuläres Ereignis (<12 Monate)"
+                continue
+
+        if option == "teriparatide":
+            if context.bone_malignancy_or_skeletal_rt == true:
+                excluded[option] = "Knochentumor oder Skelettbestrahlung"
+                continue
+
+        allowed.append(option)
+
+    return allowed, excluded

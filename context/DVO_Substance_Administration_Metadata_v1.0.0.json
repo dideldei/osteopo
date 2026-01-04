@@ -1,0 +1,232 @@
+{
+  "meta": {
+    "name": "DVO Substance Administration & Approval Metadata",
+    "version": "1.0.0",
+    "created_date": "2026-01-04",
+    "scope": "UI-only metadata for route/frequency/setting and approval context. Not used for ranking or eligibility. Approval notes may vary by product SmPC; verify locally if needed.",
+    "fields": {
+      "substance_id": "string (must match therapy engine IDs)",
+      "therapy_class": "antiresorptive | osteoanabolic",
+      "administration": {
+        "route": "oral | iv | sc | mixed",
+        "frequency_default": "daily | weekly | monthly | six_monthly | quarterly | yearly | mixed",
+        "setting_default": "self | practice | mixed"
+      },
+      "approval": {
+        "female": {
+          "approved": "boolean",
+          "population_note_de": "string"
+        },
+        "male": {
+          "approved": "boolean",
+          "population_note_de": "string"
+        }
+      },
+      "notes_de": "short neutral UI hint"
+    },
+    "enums": {
+      "route": [
+        "oral",
+        "iv",
+        "sc",
+        "mixed"
+      ],
+      "frequency_default": [
+        "daily",
+        "weekly",
+        "monthly",
+        "six_monthly",
+        "quarterly",
+        "yearly",
+        "mixed"
+      ],
+      "setting_default": [
+        "self",
+        "practice",
+        "mixed"
+      ]
+    }
+  },
+  "substances": [
+    {
+      "substance_id": "alendronate",
+      "therapy_class": "antiresorptive",
+      "administration": {
+        "route": "oral",
+        "frequency_default": "weekly",
+        "setting_default": "self"
+      },
+      "approval": {
+        "female": {
+          "approved": true,
+          "population_note_de": "Postmenopausale Osteoporose."
+        },
+        "male": {
+          "approved": true,
+          "population_note_de": "Osteoporose beim Mann; Dosierung/Frequenz je nach Präparat (häufig tägliches Regime in älteren SmPCs, teils auch wöchentlich)."
+        }
+      },
+      "notes_de": "Oral, nüchtern; Einnahmeregeln können die Adhärenz beeinflussen."
+    },
+    {
+      "substance_id": "risedronate",
+      "therapy_class": "antiresorptive",
+      "administration": {
+        "route": "oral",
+        "frequency_default": "weekly",
+        "setting_default": "self"
+      },
+      "approval": {
+        "female": {
+          "approved": true,
+          "population_note_de": "Postmenopausale Osteoporose."
+        },
+        "male": {
+          "approved": true,
+          "population_note_de": "Osteoporose beim Mann; zugelassen auch als 35 mg 1×/Woche (produktabhängig)."
+        }
+      },
+      "notes_de": "Oral, Einnahmebedingungen ähnlich Bisphosphonaten; Frequenz kann je nach Präparat variieren."
+    },
+    {
+      "substance_id": "ibandronate",
+      "therapy_class": "antiresorptive",
+      "administration": {
+        "route": "mixed",
+        "frequency_default": "mixed",
+        "setting_default": "mixed"
+      },
+      "approval": {
+        "female": {
+          "approved": true,
+          "population_note_de": "Postmenopausale Osteoporose."
+        },
+        "male": {
+          "approved": false,
+          "population_note_de": "Keine reguläre Zulassung für Osteoporose beim Mann (i.d.R. Off-Label)."
+        }
+      },
+      "notes_de": "Oral monatlich oder i.v. quartalsweise (präparatabhängig)."
+    },
+    {
+      "substance_id": "zoledronate",
+      "therapy_class": "antiresorptive",
+      "administration": {
+        "route": "iv",
+        "frequency_default": "yearly",
+        "setting_default": "practice"
+      },
+      "approval": {
+        "female": {
+          "approved": true,
+          "population_note_de": "Postmenopausale Osteoporose."
+        },
+        "male": {
+          "approved": true,
+          "population_note_de": "Osteoporose beim Mann."
+        }
+      },
+      "notes_de": "i.v. meist jährlich; sehr geringe Einnahme-Last."
+    },
+    {
+      "substance_id": "denosumab",
+      "therapy_class": "antiresorptive",
+      "administration": {
+        "route": "sc",
+        "frequency_default": "six_monthly",
+        "setting_default": "practice"
+      },
+      "approval": {
+        "female": {
+          "approved": true,
+          "population_note_de": "Postmenopausale Osteoporose."
+        },
+        "male": {
+          "approved": true,
+          "population_note_de": "Osteoporose beim Mann mit erhöhtem Frakturrisiko."
+        }
+      },
+      "notes_de": "s.c. alle 6 Monate; bei Absetzen Risiko rascher Knochenverlust (Rebound)."
+    },
+    {
+      "substance_id": "raloxifene",
+      "therapy_class": "antiresorptive",
+      "administration": {
+        "route": "oral",
+        "frequency_default": "daily",
+        "setting_default": "self"
+      },
+      "approval": {
+        "female": {
+          "approved": true,
+          "population_note_de": "Postmenopausale Frauen."
+        },
+        "male": {
+          "approved": false,
+          "population_note_de": "Keine Zulassung für Männer."
+        }
+      },
+      "notes_de": "Oral täglich; v.a. Wirbel-Frakturreduktion (kontextuell)."
+    },
+    {
+      "substance_id": "bazedoxifene",
+      "therapy_class": "antiresorptive",
+      "administration": {
+        "route": "oral",
+        "frequency_default": "daily",
+        "setting_default": "self"
+      },
+      "approval": {
+        "female": {
+          "approved": true,
+          "population_note_de": "Postmenopausale Frauen."
+        },
+        "male": {
+          "approved": false,
+          "population_note_de": "Keine Zulassung für Männer."
+        }
+      },
+      "notes_de": "Oral täglich (SERM)."
+    },
+    {
+      "substance_id": "teriparatide",
+      "therapy_class": "osteoanabolic",
+      "administration": {
+        "route": "sc",
+        "frequency_default": "daily",
+        "setting_default": "self"
+      },
+      "approval": {
+        "female": {
+          "approved": true,
+          "population_note_de": "Osteoporose mit hohem Frakturrisiko (indikationsabhängig)."
+        },
+        "male": {
+          "approved": true,
+          "population_note_de": "Osteoporose beim Mann (indikationsabhängig)."
+        }
+      },
+      "notes_de": "Tägliche s.c.-Injektion; zeitlich begrenzt, anschließend Erhaltungstherapie."
+    },
+    {
+      "substance_id": "romosozumab",
+      "therapy_class": "osteoanabolic",
+      "administration": {
+        "route": "sc",
+        "frequency_default": "monthly",
+        "setting_default": "practice"
+      },
+      "approval": {
+        "female": {
+          "approved": true,
+          "population_note_de": "Postmenopausale Frauen mit schwerer Osteoporose/hohem Frakturrisiko."
+        },
+        "male": {
+          "approved": false,
+          "population_note_de": "Keine Zulassung für Männer."
+        }
+      },
+      "notes_de": "Monatliche s.c.-Gabe (meist 12 Monate)."
+    }
+  ]
+}

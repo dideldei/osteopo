@@ -1,0 +1,173 @@
+{
+  "meta": {
+    "name": "DVO/DEGAM Osteoporose – Medikamenten-Evidenztabelle (MVP v1)",
+    "version": "v1.0.0",
+    "created_date": "2026-01-04",
+    "scope": [
+      "Evidenz-Metadaten zur Priorisierung innerhalb einer Therapieklasse (ohne Dosierungen, ohne Kontraindikationen).",
+      "Nur Substanzen, die in der Therapie-Engine v1 als Optionen vorkommen."
+    ],
+    "source_documents": [
+      {
+        "title": "DVO Therapy Recommendation Engine — Pseudocode (v1)",
+        "file": "DVO_therapy_engine_pseudocode_v1.txt"
+      },
+      {
+        "title": "Kurzfassung-Leitlinie DVO 2023 Version 2.2",
+        "file": "Kurzfassung-Leitlinie-DVO-2023-V2.2.pdf"
+      },
+      {
+        "title": "DVO Leitlinie Langfassung Version 2.1 (2023)",
+        "file": "DVO-Leitlinie-zur-Diagnostik-und-Therapie-der-Osteoporose-Version-2.1.-2023-002.pdf"
+      }
+    ],
+    "notes": [
+      "evidence_level ist eine pragmatische Ordinalskala zur UI-Sortierung (A > B > C).",
+      "fracture_efficacy.* ist bewusst binär (true/false) für MVP-Sortierlogik; Details (NNT/ARR) sind out-of-scope.",
+      "Einträge sind so gewählt, dass sie die in der Leitlinie diskutierten, klinisch etablierten Wirksamkeitsprofile abbilden."
+    ]
+  },
+  "substances": [
+    {
+      "substance_id": "romosozumab",
+      "label_de": "Romosozumab",
+      "therapy_class": "osteoanabolic",
+      "evidence_level": "A",
+      "fracture_efficacy": {
+        "hip": true,
+        "vertebral": true
+      },
+      "evidence_note_de": "Studien zeigen Frakturreduktion vs. Alendronat; DVO empfiehlt osteoanabol ab ≥10%/3J (A), DEGAM Sondervotum (B).",
+      "source_refs": [
+        "DVO2023_Kurz_S11_Differenzialtherapie",
+        "DVO2023_Lang_Kap9_5_3"
+      ]
+    },
+    {
+      "substance_id": "teriparatide",
+      "label_de": "Teriparatid",
+      "therapy_class": "osteoanabolic",
+      "evidence_level": "A",
+      "fracture_efficacy": {
+        "hip": false,
+        "vertebral": true
+      },
+      "evidence_note_de": "Bei schwerer Osteoporose wirksam v. a. vertebral; Sequenztherapie (anschließend antiresorptiv) empfohlen.",
+      "source_refs": [
+        "DVO2023_Lang_Kap9_5_3",
+        "DVO2023_Lang_GIOP"
+      ]
+    },
+    {
+      "substance_id": "zoledronate",
+      "label_de": "Zoledronat",
+      "therapy_class": "antiresorptive",
+      "evidence_level": "A",
+      "fracture_efficacy": {
+        "hip": true,
+        "vertebral": true
+      },
+      "evidence_note_de": "Antifrakturwirksamkeit inkl. nach proximaler Femurfraktur; Timing ≥2 Wochen post-OP als Leitlinienhinweis.",
+      "source_refs": [
+        "DVO2023_Lang_S254_HipFracture_Zoledronate",
+        "DVO2023_Kurz_S11"
+      ]
+    },
+    {
+      "substance_id": "denosumab",
+      "label_de": "Denosumab",
+      "therapy_class": "antiresorptive",
+      "evidence_level": "A",
+      "fracture_efficacy": {
+        "hip": true,
+        "vertebral": true
+      },
+      "evidence_note_de": "Wirksamkeit vertebral belegt; nach Absetzen zwingend antiresorptive Anschlusstherapie (A).",
+      "source_refs": [
+        "DVO2023_Lang_Kap9_5_3",
+        "DVO2023_Lang_S262_Denosumab_ADT"
+      ]
+    },
+    {
+      "substance_id": "alendronate",
+      "label_de": "Alendronat",
+      "therapy_class": "antiresorptive",
+      "evidence_level": "A",
+      "fracture_efficacy": {
+        "hip": true,
+        "vertebral": true
+      },
+      "evidence_note_de": "Breite Antifraktur-Evidenz; Referenzarm in mehreren großen Studien; in DVO als zugelassen/etabliert geführt.",
+      "source_refs": [
+        "DVO2023_Kurz_S11",
+        "DVO2023_Lang_GIOP"
+      ]
+    },
+    {
+      "substance_id": "risedronate",
+      "label_de": "Risedronat",
+      "therapy_class": "antiresorptive",
+      "evidence_level": "A",
+      "fracture_efficacy": {
+        "hip": true,
+        "vertebral": true
+      },
+      "evidence_note_de": "Antifrakturwirksamkeit inkl. vertebral; Vergleichsstudie vs. Teriparatid bei schwerer Osteoporose (VERO).",
+      "source_refs": [
+        "DVO2023_Lang_Kap9_5_3",
+        "DVO2023_Kurz_S11"
+      ]
+    },
+    {
+      "substance_id": "ibandronate",
+      "label_de": "Ibandronat",
+      "therapy_class": "antiresorptive",
+      "evidence_level": "B",
+      "fracture_efficacy": {
+        "hip": false,
+        "vertebral": true
+      },
+      "evidence_note_de": "Vertebrale Frakturreduktion etabliert; Hüftfraktur-Evidenz weniger robust als bei anderen Bisphosphonaten.",
+      "source_refs": [
+        "DVO_therapy_engine_v1_options"
+      ]
+    },
+    {
+      "substance_id": "raloxifene",
+      "label_de": "Raloxifen",
+      "therapy_class": "antiresorptive",
+      "evidence_level": "B",
+      "fracture_efficacy": {
+        "hip": false,
+        "vertebral": true
+      },
+      "evidence_note_de": "Wirksamkeit v. a. vertebral; besondere Profile (SERM) erfordern individuelle Abwägung.",
+      "source_refs": [
+        "DVO_therapy_engine_v1_options"
+      ]
+    },
+    {
+      "substance_id": "bazedoxifene",
+      "label_de": "Bazedoxifen",
+      "therapy_class": "antiresorptive",
+      "evidence_level": "B",
+      "fracture_efficacy": {
+        "hip": false,
+        "vertebral": true
+      },
+      "evidence_note_de": "SERM; Evidenz v. a. vertebral; in Engine als Option gelistet.",
+      "source_refs": [
+        "DVO_therapy_engine_v1_options"
+      ]
+    }
+  ],
+  "ordering_rules_v1": {
+    "description": "Deterministische MVP-Sortierung innerhalb der Therapieklasse.",
+    "sort_keys_desc": [
+      "evidence_level (A > B > C)",
+      "fracture_efficacy.hip (true vor false)",
+      "fracture_efficacy.vertebral (true vor false)",
+      "substance_id (alphabetisch als stabiler Fallback)"
+    ]
+  }
+}
