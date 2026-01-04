@@ -456,10 +456,11 @@ export default function App() {
           <label for="tscore">BMD (Total Hip T-Score, optional)</label>
           <input
             type="text"
-            inputMode="decimal"
             id="tscore"
+            class="bmd-input"
             value={tscoreInputValue()}
             placeholder="z.B. -2.5"
+            pattern="^-?\d*[.,]?\d*$"
             onInput={(e) => {
               let value = e.currentTarget.value;
               // Normalize comma to dot for parsing (mobile keyboards often use comma)
