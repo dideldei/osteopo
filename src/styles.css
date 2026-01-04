@@ -269,6 +269,13 @@ input[type="number"]:focus {
   line-height: 1.4;
 }
 
+.rf-age-limit-hint {
+  font-size: 0.75rem;
+  color: #d97706;
+  font-style: italic;
+  margin-left: 0.25rem;
+}
+
 .rf-meg-subgroup {
   margin: 0.75rem 0;
   padding: 0.75rem;

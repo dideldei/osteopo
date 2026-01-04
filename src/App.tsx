@@ -544,32 +544,56 @@ export default function App() {
                                 <p class="rf-meg-hint">
                                   Aus dieser Gruppe kann nur eine Option gleichzeitig gewählt werden.
                                 </p>
-                                {megRfs.map((rf) => (
-                                  <label class="rf-item">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedRfIds().has(rf.rf_id)}
-                                      onChange={() => toggleRf(rf.rf_id)}
-                                    />
-                                    <span>{formatRfLabel(rf)}</span>
-                                  </label>
-                                ))}
+                                {megRfs.map((rf) => {
+                                  const ageValue = age();
+                                  const showAgeHint = rf.rf_id === "rf_parent_hip_fracture" && ageValue !== null && ageValue > 75;
+                                  
+                                  return (
+                                    <label class="rf-item">
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedRfIds().has(rf.rf_id)}
+                                        onChange={() => toggleRf(rf.rf_id)}
+                                      />
+                                      <span>
+                                        {formatRfLabel(rf)}
+                                        {showAgeHint && (
+                                          <span class="rf-age-limit-hint">
+                                            {" "}(nur bis Alter 75)
+                                          </span>
+                                        )}
+                                      </span>
+                                    </label>
+                                  );
+                                })}
                               </div>
                             )}
                           </div>
                         );
                       })}
                       {/* Render non-MEG RFs */}
-                      {nonMegRfs.map((rf) => (
-                        <label class="rf-item">
-                          <input
-                            type="checkbox"
-                            checked={selectedRfIds().has(rf.rf_id)}
-                            onChange={() => toggleRf(rf.rf_id)}
-                          />
-                          <span>{rf.label_de} (RR: {rf.rr_3y})</span>
-                        </label>
-                      ))}
+                      {nonMegRfs.map((rf) => {
+                        const ageValue = age();
+                        const showAgeHint = rf.rf_id === "rf_parent_hip_fracture" && ageValue !== null && ageValue > 75;
+                        
+                        return (
+                          <label class="rf-item">
+                            <input
+                              type="checkbox"
+                              checked={selectedRfIds().has(rf.rf_id)}
+                              onChange={() => toggleRf(rf.rf_id)}
+                            />
+                            <span>
+                              {rf.label_de} (RR: {rf.rr_3y})
+                              {showAgeHint && (
+                                <span class="rf-age-limit-hint">
+                                  {" "}(nur bis Alter 75)
+                                </span>
+                              )}
+                            </span>
+                          </label>
+                        );
+                      })}
                     </>
                   );
                     })()}
@@ -632,32 +656,56 @@ export default function App() {
                                 <p class="rf-meg-hint">
                                   Aus dieser Gruppe kann nur eine Option gleichzeitig gewählt werden.
                                 </p>
-                                {megRfs.map((rf) => (
-                                  <label class="rf-item">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedRfIds().has(rf.rf_id)}
-                                      onChange={() => toggleRf(rf.rf_id)}
-                                    />
-                                    <span>{formatRfLabel(rf)}</span>
-                                  </label>
-                                ))}
+                                {megRfs.map((rf) => {
+                                  const ageValue = age();
+                                  const showAgeHint = rf.rf_id === "rf_parent_hip_fracture" && ageValue !== null && ageValue > 75;
+                                  
+                                  return (
+                                    <label class="rf-item">
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedRfIds().has(rf.rf_id)}
+                                        onChange={() => toggleRf(rf.rf_id)}
+                                      />
+                                      <span>
+                                        {formatRfLabel(rf)}
+                                        {showAgeHint && (
+                                          <span class="rf-age-limit-hint">
+                                            {" "}(nur bis Alter 75)
+                                          </span>
+                                        )}
+                                      </span>
+                                    </label>
+                                  );
+                                })}
                               </div>
                             )}
                           </div>
                         );
                       })}
                       {/* Render non-MEG RFs */}
-                      {nonMegRfs.map((rf) => (
-                        <label class="rf-item">
-                          <input
-                            type="checkbox"
-                            checked={selectedRfIds().has(rf.rf_id)}
-                            onChange={() => toggleRf(rf.rf_id)}
-                          />
-                          <span>{rf.label_de} (RR: {rf.rr_3y})</span>
-                        </label>
-                      ))}
+                      {nonMegRfs.map((rf) => {
+                        const ageValue = age();
+                        const showAgeHint = rf.rf_id === "rf_parent_hip_fracture" && ageValue !== null && ageValue > 75;
+                        
+                        return (
+                          <label class="rf-item">
+                            <input
+                              type="checkbox"
+                              checked={selectedRfIds().has(rf.rf_id)}
+                              onChange={() => toggleRf(rf.rf_id)}
+                            />
+                            <span>
+                              {rf.label_de} (RR: {rf.rr_3y})
+                              {showAgeHint && (
+                                <span class="rf-age-limit-hint">
+                                  {" "}(nur bis Alter 75)
+                                </span>
+                              )}
+                            </span>
+                          </label>
+                        );
+                      })}
                     </>
                   );
                     })()}
@@ -720,32 +768,56 @@ export default function App() {
                                 <p class="rf-meg-hint">
                                   Aus dieser Gruppe kann nur eine Option gleichzeitig gewählt werden.
                                 </p>
-                                {megRfs.map((rf) => (
-                                  <label class="rf-item">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedRfIds().has(rf.rf_id)}
-                                      onChange={() => toggleRf(rf.rf_id)}
-                                    />
-                                    <span>{formatRfLabel(rf)}</span>
-                                  </label>
-                                ))}
+                                {megRfs.map((rf) => {
+                                  const ageValue = age();
+                                  const showAgeHint = rf.rf_id === "rf_parent_hip_fracture" && ageValue !== null && ageValue > 75;
+                                  
+                                  return (
+                                    <label class="rf-item">
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedRfIds().has(rf.rf_id)}
+                                        onChange={() => toggleRf(rf.rf_id)}
+                                      />
+                                      <span>
+                                        {formatRfLabel(rf)}
+                                        {showAgeHint && (
+                                          <span class="rf-age-limit-hint">
+                                            {" "}(nur bis Alter 75)
+                                          </span>
+                                        )}
+                                      </span>
+                                    </label>
+                                  );
+                                })}
                               </div>
                             )}
                           </div>
                         );
                       })}
                       {/* Render non-MEG RFs */}
-                      {nonMegRfs.map((rf) => (
-                        <label class="rf-item">
-                          <input
-                            type="checkbox"
-                            checked={selectedRfIds().has(rf.rf_id)}
-                            onChange={() => toggleRf(rf.rf_id)}
-                          />
-                          <span>{rf.label_de} (RR: {rf.rr_3y})</span>
-                        </label>
-                      ))}
+                      {nonMegRfs.map((rf) => {
+                        const ageValue = age();
+                        const showAgeHint = rf.rf_id === "rf_parent_hip_fracture" && ageValue !== null && ageValue > 75;
+                        
+                        return (
+                          <label class="rf-item">
+                            <input
+                              type="checkbox"
+                              checked={selectedRfIds().has(rf.rf_id)}
+                              onChange={() => toggleRf(rf.rf_id)}
+                            />
+                            <span>
+                              {rf.label_de} (RR: {rf.rr_3y})
+                              {showAgeHint && (
+                                <span class="rf-age-limit-hint">
+                                  {" "}(nur bis Alter 75)
+                                </span>
+                              )}
+                            </span>
+                          </label>
+                        );
+                      })}
                     </>
                   );
                     })()}
