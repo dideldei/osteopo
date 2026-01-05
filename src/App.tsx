@@ -757,8 +757,8 @@ export default function App() {
 
       <div class="disclaimer">
         {results()?.usedBmd
-          ? "Diese Einstufung basiert auf Alter, Geschlecht und BMD (Total Hip T-Score) gemäß DVO 2023. Therapie ist im MVP nicht enthalten."
-          : "Diese Einstufung basiert auf Alter und Geschlecht gemäß DVO 2023 (ohne BMD). Therapie ist im MVP nicht enthalten."}
+          ? "Die Risikoeinstufung basiert auf Alter, Geschlecht, BMD (Total Hip T-Score) und ausgewählten Risikofaktoren gemäß DVO 2023. Die Therapieempfehlungen und medikamentösen Optionen sind evidenzbasiert und orientieren sich an der DVO-Leitlinie 2023. Dieses Tool dient als Unterstützung für medizinische Entscheidungen und ersetzt nicht die ärztliche Beurteilung."
+          : "Die Risikoeinstufung basiert auf Alter, Geschlecht und ausgewählten Risikofaktoren gemäß DVO 2023 (ohne BMD). Die Therapieempfehlungen und medikamentösen Optionen sind evidenzbasiert und orientieren sich an der DVO-Leitlinie 2023. Dieses Tool dient als Unterstützung für medizinische Entscheidungen und ersetzt nicht die ärztliche Beurteilung."}
       </div>
     </div>
   );
