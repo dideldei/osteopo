@@ -426,7 +426,7 @@ export default function App() {
   
   return (
     <div class="app">
-      <h1>DVO Osteoporose – MVP Threshold Classifier</h1>
+      <h1>🦴 Risikorechner Osteoporose 🐕</h1>
 
       <InputSection
         sex={sex}
