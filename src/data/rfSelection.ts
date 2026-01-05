@@ -81,7 +81,12 @@ export function computeCombinedMultiplier(chosenRfs: SelectedRfInfo[]): number {
 /**
  * Determine if threshold is reached based on required factor and multiplier
  * Returns both the result and reason for transparency
+ * 
+ * Uses epsilon tolerance to handle floating-point precision issues.
+ * For example: 1.5 * 1.4 = 2.0999999999999996 instead of exactly 2.1
  */
+const EPSILON = 1e-9; // Very small tolerance for floating-point comparisons
+
 export function isThresholdReached(
   requiredFactor: number | null,
   multiplier: number
@@ -93,11 +98,15 @@ export function isThresholdReached(
     };
   }
   
-  const reached = multiplier >= requiredFactor;
+  // Use epsilon tolerance: multiplier >= (requiredFactor - epsilon)
+  // This handles cases where floating-point arithmetic produces values like
+  // 2.0999999999999996 instead of exactly 2.1
+  const reached = multiplier >= (requiredFactor - EPSILON);
   return {
     reached,
     reason: "Multiplikator vs. erforderlicher Faktor",
   };
 }
+
 
 

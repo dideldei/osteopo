@@ -334,6 +334,7 @@ export default function App() {
     // When BMD is provided OR RFs are selected, use multiplier comparison:
     // - If cell is null → reached = true (unchanged)
     // - If cell is numeric → reached = (multiplier >= requiredFactor)
+    // Note: Uses epsilon tolerance in isThresholdReached to handle floating-point precision
     
     const threshold3 = !usedBmd && multiplier === 1.0 && cell3 !== null
       ? { reached: false, reason: "Schwelle nicht erreicht (ohne RF)" }
